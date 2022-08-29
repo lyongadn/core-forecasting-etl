@@ -1,0 +1,26 @@
+base:
+  name: core-forecast-jenkins-trigger
+  version: "jenkins-trigger.0.0.4"
+  system_tag: CORE_FORECAST_JENKINS_TRIGGER
+  src_dir: core_forecast_jenkins_trigger
+  src_dir_prefix: core-forecast-misc/core-forecast-jenkins-trigger 
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

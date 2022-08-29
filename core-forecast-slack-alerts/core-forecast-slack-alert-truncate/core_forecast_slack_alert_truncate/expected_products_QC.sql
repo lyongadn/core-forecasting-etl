@@ -1,0 +1,1 @@
+select coalesce(count(*),0)from ml_preprod.expected_forecasted_products;

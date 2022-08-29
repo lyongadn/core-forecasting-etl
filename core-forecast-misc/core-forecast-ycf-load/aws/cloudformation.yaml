@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'lambda function to upload ycf data into aurora'
+Parameters:
+  Name:
+    Description: Name of the project
+    Type: String
+    Default: project-name
+  Bucket:
+    Description: Bucket for lambda artifact
+    Type: String
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    ConstraintDescription: Must be one of dev, test, or prod
+  LambdaArtifact:
+    Type: String
+    Description: Name of file that contains lambda code
+    Default: lambda_function.zip
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/GithubActionsIamResourcePermissionsBoundary'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      RoleName: !Ref 'Name'
+      Tags:
+      - Key: "ALLOW_GHA_DELETE"
+        Value: "TRUE"
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: ' '
+      FunctionName: !Ref 'Name'
+      Handler: 'core_forecast_ycf_load.lambda_function.lambda_handler'
+      MemorySize: 512
+      Timeout: 300
+      Code:
+        S3Bucket: !Ref 'Bucket'
+        S3Key: !Ref 'LambdaArtifact'
+      Role: !GetAtt 'Role.Arn'
+      Runtime: python3.8
+      Environment:
+        Variables:
+          ENV: !Ref 'Environment'

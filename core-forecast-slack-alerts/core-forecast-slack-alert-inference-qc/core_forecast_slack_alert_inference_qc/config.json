@@ -1,0 +1,19 @@
+{
+    "dev": {
+        "baseline_qc_slack_upload_msg_key": "prod-parameterization/QC-Flag/Baseline/notification.txt",
+        "columns_forecast_qc": "store_number",
+        "database": "ml_preprod",
+        "forecast_qc_slack_upload_msg_key": "prod-parameterization/QC-Flag/Forecast/notification.txt",
+        "local_path_forecast_qc": "/tmp/CSVtoJSON_generation.csv",
+        "prod_bucket": "prod-q-forecasting-artifacts",
+        "replica_host_link": "prod-rds-forecast-cluster.cluster-ro-cisakqjjjrn2.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-prod",
+        "secret_key_slack": "Forecasting-Engine-Slack-API",
+        "slack_channel_QC": "prod-alerts",
+        "slack_emoji": ":cow:",
+        "slack_username": "Forecast-QC-Alert",
+        "upload_key_forecast_qc": "prod-parameterization/crawler_parameters/LSTM/CSVtoJSON_generation.csv"
+    },
+    "test": {},
+    "prod": {}
+}

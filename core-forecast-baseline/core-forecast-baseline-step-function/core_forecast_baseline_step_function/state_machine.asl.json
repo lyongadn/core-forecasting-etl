@@ -1,0 +1,144 @@
+{
+  "Comment": "Baseline forecast pipeline",
+  "StartAt": "baseline-daily-sales-algorithm",
+  "States": {
+    "baseline-daily-sales-algorithm": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "<env>-core-forecast-baseline-daily-sales-algorithm",
+        "Arguments": {
+          "--ENV":"<env>"
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": null,
+          "Next": "LogFailuretoSNS"
+        }
+    ],
+    "Next": "baseline-daily-sales-algorithm-qc"
+    },
+    "baseline-daily-sales-algorithm-qc": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-core-forecast-qc-baseline-daily-sales-algorithm",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": null,
+          "Next": "LogFailuretoSNS"
+        }
+    ],
+    "Next": "baseline-itemcount-forecast-generator"
+    },
+    "baseline-itemcount-forecast-generator": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "<env>-core-forecast-baseline-itemcount",
+        "Arguments": {
+          "--METRIC":"itemcount",
+          "--ENV": "<env>"
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": null,
+          "Next": "LogFailuretoSNS"
+        }
+    ],
+    "Next": "baseline-dollars-transcount-forecast-generator"
+    },
+    "baseline-dollars-transcount-forecast-generator": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "<env>-core-forecast-baseline-dollarsandtrans",
+        "Arguments": {
+          "--METRIC":"dollartrans",
+          "--ENV": "<env>"
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": null,
+          "Next": "LogFailuretoSNS"
+        }
+      ],
+    "Next": "baseline-ingredient-forecast-generator"
+    },
+    "baseline-ingredient-forecast-generator": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "<env>-core-forecast-baseline-ingredient",
+        "Arguments": {
+          "--ENV": "<env>"
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": null,
+          "Next": "LogFailuretoSNS"
+        }
+      ],
+      "Next": "baseline-jenkins-trigger"
+    },
+    "baseline-jenkins-trigger": {
+      "Type": "Task",
+      "Parameters": {
+        "pipeline": "baseline"
+      },
+      "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-core-forecast-jenkins-trigger",
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": null,
+          "Next": "LogFailuretoSNS"
+        }
+    ]
+    },
+    "LogFailuretoSNS": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Next": "Failure",
+      "Parameters": {
+          "TopicArn": "arn:aws:sns:<region>:<account_id>:<env>-slack-alerts-topic",
+          "Message": {
+              "channel": "<env>-alerts",
+              "username": "<env>-core-forecast-baseline-state-machine",
+              "icon_emoji": "rotating_light",
+              "blocks": [
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": "The baseline-forecast-state-machine failed in the following environment"
+                      }
+                  }
+              ]
+          }
+      }
+    },
+    "Failure": {
+      "Type": "Fail"
+    }
+  }
+}

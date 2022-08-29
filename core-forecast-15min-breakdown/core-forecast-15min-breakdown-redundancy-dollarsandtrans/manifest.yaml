@@ -1,0 +1,31 @@
+base:
+  name: core-forecast-15min-breakdown-redundancy-dollarsandtrans
+  version: "15min-breakdown-redundancy-dollarandtrans-0.0.2"
+  system_tag: CORE_FORECAST_15MIN_BREAKDOWN_REDUNDANCY_DOLLARSANDTRANS
+  src_dir: core_forecast_15min_breakdown_redundancy_dollarsandtrans
+  src_dir_prefix: core-forecast-15min-breakdown/core-forecast-15min-breakdown-redundancy-dollarsandtrans 
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+    quality_gate_wait: false
+  servicenow:
+    create_change: False
+    user_group: 
+ 
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

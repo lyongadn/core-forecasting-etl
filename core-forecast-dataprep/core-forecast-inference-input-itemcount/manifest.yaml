@@ -1,0 +1,30 @@
+base:
+  name: core-forecast-inference-input-itemcount
+  version: "inference-input-itemcount.0.0.2"
+  system_tag: CORE_FORECAST_INFERENCE_INPUT_ITEMCOUNT
+  src_dir: core_forecast_inference_input_itemcount 
+  src_dir_prefix: core-forecast-dataprep/core-forecast-inference-input-itemcount 
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+    quality_gate_wait: false
+  servicenow:
+    create_change: False
+    user_group: 
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

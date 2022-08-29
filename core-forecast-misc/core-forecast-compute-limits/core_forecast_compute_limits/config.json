@@ -1,0 +1,37 @@
+{
+    "dev": {
+        "custom_host_link":"integration-rds-forecast-cluster.cluster-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-integration",
+        "limit_columns":["weekday","demand"],
+        "local_path":"/tmp/__metric___limits___store_num__.csv",
+        "query_list":["core_forecast_compute_limits/Dollarsales_limits.sql","core_forecast_compute_limits/Transcount_limits.sql","core_forecast_compute_limits/Itemcount_limits.sql","core_forecast_compute_limits/Ingredient_limits.sql"],
+        "output_bucket":"dev-q-forecasting-artifacts",
+        "upload_path":"forecast/limits_perstore/__metric__/__metric___limits___store_num__.csv",
+        "database":"ml_preprod"
+    },
+
+    "test": {
+        "custom_host_link":"integration-rds-forecast-cluster.cluster-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-integration",
+        "limit_columns":["weekday","demand"],
+        "local_path":"/tmp/__metric___limits___store_num__.csv",
+        "query_list":["core_forecast_compute_limits/Dollarsales_limits.sql","core_forecast_compute_limits/Transcount_limits.sql","core_forecast_compute_limits/Itemcount_limits.sql","core_forecast_compute_limits/Ingredient_limits.sql"],
+        "output_bucket":"test-q-forecasting-artifacts",
+        "upload_path":"forecast/limits_perstore_old/__metric__/__metric___limits___store_num__.csv",
+        "database":"ml_preprod"
+    },
+
+    "prod":{
+        "reader_host_link":"prod-rds-forecast-cluster.cluster-ro-cisakqjjjrn2.us-east-1.rds.amazonaws.com",
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-prod",
+        "limit_columns":["weekday","demand"],
+        "local_path":"/tmp/__metric___limits___store_num__.csv",
+        "query_list":["core_forecast_compute_limits/Dollarsales_limits.sql","core_forecast_compute_limits/Transcount_limits.sql","core_forecast_compute_limits/Itemcount_limits.sql","core_forecast_compute_limits/Ingredient_limits.sql"],
+        "output_bucket":"prod-q-forecasting-artifacts",
+        "upload_path":"forecast/limits_perstore/__metric__/__metric___limits___store_num__.csv",
+        "database":"ml_preprod"
+    }
+}

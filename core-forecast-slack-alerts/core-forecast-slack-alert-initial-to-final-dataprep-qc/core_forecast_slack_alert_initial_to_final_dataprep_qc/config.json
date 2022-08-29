@@ -1,0 +1,27 @@
+{
+    "dev": {
+        "columns_initial_final_slack": "location_num,dailyqc",
+        "database": "ml_preprod",
+        "initial_final_slack_upload_msg_key": "test-parameterization/QC-Flag/DataPrep/notification.txt",
+        "prod_bucket": "test-q-forecasting-artifacts",
+        "replica_host_link": "integration-rds-forecast-cluster.cluster-ro-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-integration",
+        "secret_key_slack": "Forecasting-Engine-Slack",
+        "slack_channel_QC": "prod-alerts",
+        "slack_emoji": ":baby_chick:",
+        "slack_username": "Initial-Final-QC-Alert"
+    },
+    "test": {
+        "columns_initial_final_slack": "location_num,dailyqc",
+        "database": "ml_preprod",
+        "initial_final_slack_upload_msg_key": "test-parameterization/QC-Flag/DataPrep/notification.txt",
+        "prod_bucket": "test-q-forecasting-artifacts",
+        "replica_host_link": "integration-rds-forecast-cluster.cluster-ro-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-integration",
+        "secret_key_slack": "Forecasting-Engine-Slack",
+        "slack_channel_QC": "prod-alerts",
+        "slack_emoji": ":baby_chick:",
+        "slack_username": "Initial-Final-QC-Alert"
+    },
+    "prod": {}
+}

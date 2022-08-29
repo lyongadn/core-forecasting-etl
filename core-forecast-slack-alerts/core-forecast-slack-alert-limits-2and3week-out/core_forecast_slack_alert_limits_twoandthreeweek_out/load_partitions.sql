@@ -1,0 +1,1 @@
+MSCK REPAIR TABLE json_alerts.__table_14days__;

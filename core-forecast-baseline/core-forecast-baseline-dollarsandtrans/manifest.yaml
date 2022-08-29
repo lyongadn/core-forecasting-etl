@@ -1,0 +1,29 @@
+base:
+  name: core-forecast-baseline-dollarsandtrans
+  version: "baseline-dollarsandtrans.0.0.3"
+  slack_channel: forecast-deployment-alerts
+  src_dir: core_forecast_baseline_dollarsandtrans 
+  src_dir_prefix: core-forecast-baseline/core-forecast-baseline-dollarsandtrans
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+  glue_role_name: dev-baseline-dollarsandtrans-glue-role
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+  glue_role_name: test-baseline-dollarsandtrans-glue-role
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod
+  glue_role_name: prod-baseline-dollarsandtrans-glue-role

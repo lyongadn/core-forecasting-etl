@@ -1,0 +1,115 @@
+name: test-baseline-ingredient
+on:
+  push:
+    paths:
+    - 'core-forecast-baseline/core-forecast-baseline-ingredient/**'
+    - '.github/workflows/test-baseline-ingredient.yaml'
+    branches:
+    - master
+
+env:
+  ENVIRONMENT: test
+  
+jobs:
+  # Load env vars and other preliminary stuff
+  init:
+    name: Init
+    runs-on: ubuntu-latest
+    steps:
+    # Checout repo
+    - uses: actions/checkout@v2
+    # Checkout private cfacorp actions lib
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    # Load env vars 
+    - name: env-loader
+      uses: ./.github/private-actions/env-loader
+      with:
+        env-file: ./core-forecast-baseline/core-forecast-baseline-ingredient/manifest.yaml
+        filter: base,${{ env.ENVIRONMENT }}
+    - run: |
+        echo "GITHUB_REF_SLUG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        echo "ARTIFACTORY_PROJECT_BASE_URL=${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}" >> $GITHUB_ENV
+    # Set NP VERSION with suffix
+    - name: set version (snapshot)
+      if: github.ref != 'refs/heads/master'
+      run: |
+        echo "VERSION=${{ env.VERSION }}-dev.${{ github.run_number }}" >> $GITHUB_ENV
+    outputs:
+      env: ${{ toJson(env) }}
+      account: ${{ env.ACCOUNT }}
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init]
+    steps:
+    # Checout repo
+    - uses: actions/checkout@v2
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    # BUILD artifact
+    - name: Build artifacts
+      run: |
+        mkdir -p dist
+        docker run -e SRC_DIR --rm -v "$PWD":/var/task lambci/lambda:build-python3.7 echo 'hello world'
+        sudo chown -R runner:docker ./dist  # Necessary because docker build creates files belonging to root:root which the runner does not have access to read
+        pwd
+        # Move glue scripts to dist folder
+        cp ./${{ env.SRC_DIR_PREFIX }}/${{ env.SRC_DIR }}/etl_job.py ./dist/etl_job.py
+
+        # download the delta core jar
+    - name: Publish Artifacts
+      run: |
+        ## cfn - non-zipped cfn json or yaml file
+        curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T ${{env.SRC_DIR_PREFIX}}/aws/cloudformation.json ${{ env.ARTIFACTORY_PROJECT_BASE_URL }}/cloudformation.json
+        ## glue scripts
+        curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T dist/etl_job.py ${{ env.ARTIFACTORY_PROJECT_BASE_URL }}/etl_job.py
+        ## cfadl python package zip
+        ## delta core jar
+        ## delta core tables.py
+    - name: Push tag
+      uses: ./.github/private-actions/git-tag
+      with:
+        tag: v${{ env.VERSION }}
+# Deploy to AWS Account
+  deploy:
+    name: Deploy
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init,build]
+    runs-on: ${{ needs.init.outputs.account }} # Specifying which runner to run on
+    steps:
+    - name: Set env vars
+      run: |
+        echo "BUCKET=$(aws sts get-caller-identity --query Account --output text)-us-east-1-deploy" >> $GITHUB_ENV
+    - name: Download Artifacts
+      run: |
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_PROJECT_BASE_URL }}/cloudformation.json
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_PROJECT_BASE_URL }}/etl_job.py
+    - name: Upload Artifacts
+      run: |
+        aws s3api create-bucket --bucket ${{ env.BUCKET }}  # Creates bucket if it doesn't exist
+        aws s3 cp cloudformation.json s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.json
+        aws s3 cp etl_job.py s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/etl_job.py
+    - name: Deploy Cloudformation
+      uses: aws-actions/aws-cloudformation-github-deploy@v1
+      with:
+        name: ${{ env.ENVIRONMENT }}-${{ env.NAME }}
+        template: cloudformation.json
+        capabilities: CAPABILITY_NAMED_IAM
+        parameter-overrides: >
+          Name=${{ env.NAME }},
+          Environment=${{ env.ENVIRONMENT }},
+          DeploymentBucket=${{ env.BUCKET }},
+          ETLScriptS3Key=${{ env.NAME }}/${{ env.VERSION }}/etl_job.py,
+          GlueRoleName=${{ env.GLUE_ROLE_NAME }}

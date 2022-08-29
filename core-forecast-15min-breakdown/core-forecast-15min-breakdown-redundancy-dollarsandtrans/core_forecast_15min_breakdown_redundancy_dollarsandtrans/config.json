@@ -1,0 +1,21 @@
+{
+    "dev": {
+        "database": "redundancy",
+        "dollarsales_forecast_table_name": "daily_dollarsales_lstm_redundancy",
+        "dollarsales_local_path": "/tmp/Dollarsales_Redundancy_data.csv",
+        "dollarsales_local_path_stg": "/tmp/Dollarsales_Redundancy_data.parquet",
+        "dollarsales_ratio_table_name": "15min_dollarsales_ratio",
+        "dollarsales_upload_key": "prod-parameterization/redundancy/dollarsales/15min/location_num=--/dollarsales-redundancy_15min.csv",
+        "dollarsales_upload_key_stg": "Staging/Aurora_Incremental/Redundancy/dollarsales/15min/location_num=--/_date_.parquet",
+        "dollarsales_upload_table_name": "15min_dollarsales_lstm_redundancy",
+        "dollartranscount_table_schema": "business_date,time,15minsforecast,15minsforecast_trans,gen_date,location_num",
+        "lambda_function_itemcount_name": "Prod-Aurora-Redundancy-ItemCount-Ingredient",
+        "prod_bucket": "prod-q-forecasting-artifacts",
+        "replica_host_link": "prod-rds-forecast-cluster.cluster-ro-cisakqjjjrn2.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-prod",
+        "transcount_forecast_table_name": "daily_transcount_lstm_redundancy",
+        "transcount_ratio_table_name": "15min_transcount_ratio"
+    },
+    "test": {},
+    "prod": {}
+}

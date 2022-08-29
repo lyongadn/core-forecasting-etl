@@ -1,0 +1,52 @@
+{
+    "dev": {
+        "slack_channel": "integration-alerts",
+        "secret_name": "cfa-rdskey-integration",
+        "slack_alerts_topic": "arn:aws:sns:us-east-1:186277090777:test-slack-alerts-topic",
+        "bucket":"dev-q-forecasting-artifacts",
+        "baseline_dates_path":"baseline/Dates",
+        "baseline_trend_path":"baseline/Trend",
+        "lag_after_high_low_removal": 3,
+        "saturday_off_stores_table": "ml_preprod.saturday_off_stores",
+        "qc_table_name": "baseline.daily_sales_algorithm_qc",
+        "dates_table_name": "baseline.dates",
+        "qc_file_s3_path": "s3://dev-q-forecasting-artifacts/baseline/sales_algorithm_QC/forecast_qc.csv",
+        "store_list_filepath": "s3://dev-q-forecasting-artifacts/baseline/location_list/LSTM_Baseline_List.csv",
+        "qc_passed_stores_path":"s3://dev-q-forecasting-artifacts/baseline/sales_algorithm_QC/PASSED_STORES.csv",
+        "qc_failed_stores_path":"s3://dev-q-forecasting-artifacts/baseline/sales_algorithm_QC/FAILED_STORES.csv"
+    },
+    "test": {
+        "slack_channel": "integration-alerts",
+        "secret_name": "cfa-rdskey-integration",
+        "slack_alerts_topic": "arn:aws:sns:us-east-1:186277090777:test-slack-alerts-topic",
+        "bucket":"test-q-forecasting-artifacts",
+        "database":"baseline",
+        "baseline_dates_path":"baseline/Dates",
+        "baseline_trend_path":"baseline/Trend",
+        "lag_after_high_low_removal": 3,
+        "saturday_off_stores_table": "ml_preprod.saturday_off_stores",
+        "qc_table_name": "baseline.daily_sales_algorithm_qc",
+        "dates_table_name": "baseline.dates",
+        "qc_file_s3_path": "s3://test-q-forecasting-artifacts/baseline/sales_algorithm_QC/forecast_qc.csv",
+        "store_list_filepath": "s3://test-q-forecasting-artifacts/baseline/location_list/LSTM_Baseline_List.csv",
+        "qc_passed_stores_path":"s3://test-q-forecasting-artifacts/baseline/sales_algorithm_QC/PASSED_STORES.csv",
+        "qc_failed_stores_path":"s3://test-q-forecasting-artifacts/baseline/sales_algorithm_QC/FAILED_STORES.csv"
+    },
+    "prod": {
+        "slack_channel": "prod-alerts",
+        "secret_name": "cfa-rdskey-prod",
+        "slack_alerts_topic": "arn:aws:sns:us-east-1:725706091682:prod-slack-alerts-topic",
+        "bucket":"prod-q-forecasting-artifacts",
+        "database":"baseline",
+        "baseline_dates_path":"baseline/Dates",
+        "baseline_trend_path":"baseline/Trend",
+        "lag_after_high_low_removal": 3,
+        "saturday_off_stores_table": "ml_preprod.saturday_off_stores",
+        "qc_table_name": "baseline.daily_sales_algorithm_qc",
+        "dates_table_name": "baseline.dates",
+        "qc_file_s3_path": "s3://prod-q-forecasting-artifacts/baseline/sales_algorithm_QC/forecast_qc.csv",
+        "store_list_filepath": "s3://prod-q-forecasting-artifacts/baseline/location_list/LSTM_Baseline_List.csv",
+        "qc_passed_stores_path":"s3://prod-q-forecasting-artifacts/baseline/sales_algorithm_QC/PASSED_STORES.csv",
+        "qc_failed_stores_path":"s3://prod-q-forecasting-artifacts/baseline/sales_algorithm_QC/FAILED_STORES.csv"
+    }
+}

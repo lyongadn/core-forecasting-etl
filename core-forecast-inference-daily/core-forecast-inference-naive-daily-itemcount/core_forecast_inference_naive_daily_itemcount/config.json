@@ -1,0 +1,24 @@
+{
+    "dev": {
+        "database": "ml_preprod",
+        "final_itemlevelcount_daily_table_name": "final_itemlevelcount_daily",
+        "inferencedates_daily_table_name": "inferencedates_daily",
+        "initial_itemlevelcount_table_name": "initial_itemlevelcount_daily",
+        "item_store_combinations_sql_path": "item_store.sql",
+        "longer_forecast_end": 25,
+        "longer_forecast_path": "prod-parameterization/forecast/itemcount/daily/30thday/location_num=--location_num--/twentydayAhead_Naive.csv",
+        "longer_forecast_start": 22,
+        "lstm_combinations_table_name": "lstm_combinations",
+        "prod_bucket": "prod-q-forecasting-artifacts",
+        "redundancy_forecast_end": 30,
+        "redundancy_forecast_path": "prod-parameterization/forecast/itemcount/daily/redundancy/location_num=--location_num--/thirtydayAhead_Naive.csv",
+        "redundancy_forecast_start": 26,
+        "replica_host_link": "prod-rds-forecast-cluster.cluster-ro-cisakqjjjrn2.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-prod",
+        "shorter_forecast_end": 20,
+        "shorter_forecast_path": "prod-parameterization/forecast/itemcount/daily/14thday/location_num=--location_num--/tendayAhead_Naive.csv",
+        "shorter_forecast_start": 17
+    },
+    "test": {},
+    "prod": {}
+}

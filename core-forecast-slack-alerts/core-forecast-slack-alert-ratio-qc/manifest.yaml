@@ -1,0 +1,34 @@
+base:
+  name: core-forecast-slack-alert-ratio-qc
+  version: "slack-alert-ratio-qc.0.0.1"
+  system_tag: CORE_FORECAST_SLACK_ALERT_RATIO_QC
+  src_dir: core_forecast_slack_alert_ratio_qc 
+  src_dir_prefix: core-forecast-slack-alerts/core-forecast-slack-alert-ratio-qc
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+    quality_gate_wait: false
+  servicenow:
+    create_change: False
+    user_group: 
+  # cache_paths: |
+  #   ~/.cache/pip
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

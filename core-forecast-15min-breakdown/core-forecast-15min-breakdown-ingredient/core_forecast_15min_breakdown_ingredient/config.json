@@ -1,0 +1,24 @@
+{
+    "dev": {
+        "database": "ui_preprod",
+        "forecast_table_schema": "business_date,ingredient_id,ingredient_quantity,unit_of_measure,interval_start_time,generation_date,location_num",
+        "lookup_ingredients_table_name": "lookup_ingredients",
+        "lstm10_key": "prod-parameterization/forecast/ingredient/15min/15min10thday/location_num=--/ingredient-inference_15min.csv",
+        "lstm10_key_stg": "Staging/Aurora_Incremental/Forecast/ingredient/15min/15min10thday/location_num=--/_date_.parquet",
+        "lstm10_localpath": "/tmp/inference_15min_10.csv",
+        "lstm10_localpath_stg": "/tmp/inference_15min_10.parquet",
+        "lstm10_table_name": "15min_itemcount_lstm_14days_ahead",
+        "lstm10_upload_table_name": "15min_ingredients_lstm_14days_ahead",
+        "lstm30_key": "prod-parameterization/forecast/ingredient/15min/15min30thday/location_num=--/ingredient-inference_15min.csv",
+        "lstm30_key_stg": "Staging/Aurora_Incremental/Forecast/ingredient/15min/15min30thday/location_num=--/_date_.parquet",
+        "lstm30_localpath": "/tmp/inference_15min_30.csv",
+        "lstm30_localpath_stg": "/tmp/inference_15min_30.parquet",
+        "lstm30_table_name": "15min_itemcount_lstm_30days_ahead",
+        "lstm30_upload_table_name": "15min_ingredients_lstm_30days_ahead",
+        "prod_bucket": "prod-q-forecasting-artifacts",
+        "replica_host_link": "prod-rds-forecast-cluster.cluster-ro-cisakqjjjrn2.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-prod"
+    },
+    "test": {},
+    "prod": {}
+}

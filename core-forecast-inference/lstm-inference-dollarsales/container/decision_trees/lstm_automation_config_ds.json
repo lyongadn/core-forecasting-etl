@@ -1,0 +1,389 @@
+{
+  "data": {
+    "columns_ic": [
+      "aroundthanksgiving",
+      "aroundchristmas",
+      "onedaypriorchristmas_and_new_year",
+      "federalholiday",
+      "holiday",
+      "blackfridaycheck",
+      "business_date",
+      "dayofweek",
+      "sunday",
+      "product",
+      "sum_daily_quantity",
+      "federalholiday_name",
+      "generation_date",
+      "location_num"
+    ],
+    "columns_ds": [
+      "business_date",
+      "sales_sub_total",
+      "dayofweek",
+      "federalholiday_name",
+      "blackfridaycheck",
+      "aroundthanksgiving",
+      "aroundchristmas",
+      "onedaypriorchristmas_and_new_year",
+      "holiday",
+      "location_num",
+      "generation_date"
+    ],
+    "features_to_use_ic": [
+      "sum_daily_quantity",
+      "dayofweek",
+      "aroundchristmas",
+      "onedaypriorchristmas_and_new_year",
+      "blackfridaycheck",
+      "aroundthanksgiving"
+    ],
+    "features_to_use_ds": [
+      "sales_sub_total",
+      "dayofweek",
+      "aroundchristmas",
+      "onedaypriorchristmas_and_new_year",
+      "blackfridaycheck",
+      "aroundthanksgiving"
+    ],
+    "features_to_use_tc": [
+      "trans_count",
+      "dayofweek",
+      "aroundchristmas",
+      "onedaypriorchristmas_and_new_year",
+      "blackfridaycheck",
+      "aroundthanksgiving"
+    ],
+    "federal_holidays": [
+      "federalholiday_name_Columbus_Day",
+      "federalholiday_name_Independence_Day",
+      "federalholiday_name_Labor_Day",
+      "federalholiday_name_Martin_Luther_King_Jr_Day",
+      "federalholiday_name_Memorial_Day",
+      "federalholiday_name_New_Year_Day",
+      "federalholiday_name_Presidents_Day",
+      "federalholiday_name_Veterans_Day",
+      "federalholiday_name_Regular-day"
+    ],
+    "inference_end_day": 31,
+    "inference_end_month": 3,
+    "inference_end_year": 2019,
+    "inference_horizon_index": 26,
+    "inference_lookback_index": 56,
+    "longer_forecast_horizon": 25,
+    "inference_start_date": "2019-01-01",
+    "metric": "sales_sub_total",
+    "robust_max": 95,
+    "robust_min": 5,
+    "training_cutoff": "2018-12-15",
+    "training_start": "2013-01-01",
+    "saturday_closed_stores": [652,357,517]
+  },
+  "infrastructure": {
+    "AlgorithmSpecification": {
+      "TrainingImage": "725706091682.dkr.ecr.us-east-1.amazonaws.com/lstm-sagemaker-automation-initial:latest",
+      "TrainingInputMode": "File"
+    },
+    "EnableManagedSpotTraining": false,
+    "EnableNetworkIsolation": false,
+    "InputDataConfig": [
+      {
+        "ChannelName": "training",
+        "ContentType": "application/json",
+        "DataSource": {
+          "S3DataSource": {
+            "S3DataDistributionType": "FullyReplicated",
+            "S3DataType": "S3Prefix",
+            "S3Uri": "s3://prod-q-forecasting-artifacts/crawler_parameters/lstm_automation_config_ns.json"
+          }
+        }
+      }
+    ],
+    "OutputDataConfig": {
+      "S3OutputPath": "s3://prod-q-forecasting-artifacts/lstm-automation"
+    },
+    "ResourceConfig": {
+      "InstanceCount": 1,
+      "InstanceType": "ml.c4.xlarge",
+      "VolumeSizeInGB": 10
+    },
+    "RoleArn": "arn:aws:iam::725706091682:role/prod-cfaforecastprod-ec2-role",
+    "StoppingCondition": {
+      "MaxRuntimeInSeconds": 10800
+    },
+    "Tags": [
+      {
+        "Key": "metric",
+        "Value": "DS"
+      }
+    ]
+  },
+  "lambda": {
+    "description": "Lambda that spawns SageMaker training job(s)",
+    "function_name": "lstm-training-automation-2",
+    "handler_name": "lstm-training-automation-2.lambda_handler",
+    "handler_zip": "lstm-automation/lambda_handler/lstm-training-automation-2.zip",
+    "memorysize": 1024,
+    "rolearn": "arn:aws:iam::725706091682:role/prod-cfaforecastprod-lambda-role",
+    "runtime": "python3.6",
+    "timeout": 900
+  },
+  "model": {
+    "batch_size": 64,
+    "do_inference": "True",
+    "epochs": 25,
+    "horizon": 10,
+    "lookback": 15,
+    "loss_metric": "mae",
+    "neuron": 100,
+    "optimizer": "adam",
+    "retrain": "False",
+    "train_remod": "False",
+    "upload_completed_model": "False",
+    "verbose": 0,
+    "run_mode": "prod"
+    
+  },
+  "inference": {
+    "shorter_forecast_start": 17,
+    "shorter_forecast_end": 20,
+    "longer_forecast_start": 22,
+    "longer_forecast_end": 25,
+    "redundancy_forecast_start": 26,
+    "redundancy_forecast_end": 30,
+    "inference_history_lookback": 56,
+    "forecast_output_window": 32,
+    "forecast_period": [2,3,4]
+  
+  },
+  "path": {
+    "base_forecast_key": "forecast-test/",
+    "base_key": "model-object/",
+    "bucket": "prod-q-forecasting-artifacts",
+    "inference_data_key_ds": ["data_lake","Inference","DollarsAndTranscount","location_num=--","Inference_daily.csv"],
+    "inference_data_key_ic": ["data_lake","Inference","ItemCount","location_num=--","Inference_daily.csv"],
+    "training_bucket": "prod-q-forecasting-artifacts",
+    "custom_transform_type": "neg",
+    "experiment_month": "Sep20",
+    "experiment_purpose": "NP-ME-LS-LSTM-WOY-V1-Sep20",
+    "local_completed_model_ic": [
+      ".",
+      "LSTM-completed-models_--.csv"
+    ],
+    "local_outlier_impute_file_ds": [
+      "--_outlier_record.csv"
+    ],
+      "local_outlier_impute_file_tc": [
+      "--_outlier_record.csv"
+    ],
+      "local_outlier_impute_file_ic": [
+      "--_outlier_record_--.csv"
+    ],
+      "shorter_combined_fname_ic": 
+      "fourteendayAhead.csv",
+      "longer_combined_fname_ic": 
+      "thirtydayAhead.csv"
+      ,
+      "redundancy_combined_fname_ic": 
+      "thirtyfourdayAhead.csv"
+      ,
+    "local_inference_longer_ic": [
+      "--_thirtydayAhead_--.csv"
+    ],
+    "local_inference_longer_ds": [
+      "thirtydayAhead--.csv"
+    ],
+    "local_inference_redundancy_ds": [
+      "thirtyfourdayAhead--.csv"
+    ],
+      "local_inference_longer_tc": [
+      "thirtydayAhead--.csv"
+    ],
+    "local_inference_redundancy_tc": [
+      "thirtyfourdayAhead--.csv"
+    ],
+    "local_inference_shorter_ic": [
+      "--_fourteendayAhead_--.csv"
+    ],
+      "local_inference_redundancy_ic": [
+      "--_thirtyfourdayAhead_--.csv"
+    ],
+    "local_inference_shorter_ds": [
+      "fourteendayAhead--.csv"
+    ],
+      "local_inference_shorter_tc": [
+      "fourteendayAhead--.csv"
+    ],
+    "local_text_fname": "--_itemcount_--.csv",
+    "local_text_fname_ds": "--_dollars_allproducts.csv",
+    "local_text_fname_tc": "--_transcount_allproducts.csv",
+    "location_pq": [
+        "LSTM-Enhancements",
+      "crawler_parameters",
+      "location_pq_aurora.csv"
+    ],
+    "log_file_name": "Model_training_itemcount_params_stack_--.log",
+    "log_file_name_2": "Model_training_history--.log",
+    "model_chk_ds": [
+      "crawler_parameters",
+      "lstm_automation",
+      "model_chks",
+      "dollarsales",
+      "--"
+    ],
+    "model_chk_ic": [
+      "crawler_parameters",
+      "lstm_automation",
+      "model_chks",
+      "itemcount",
+      "location_num=--",
+      "--"
+    ],
+    "model_chk_tc": [
+      "crawler_parameters",
+      "lstm_automation",
+      "model_chks",
+      "transcount",
+      "--"
+    ],
+    "model_id_ic": "--_itemcount_--",
+    "model_id_ds": "--_dollars_allproducts",
+    "model_id_tc": "--_transcount_allproducts",
+    "model_version": "LSTM-WOY-V1",
+    "retrain_combs": [
+      "crawler_parameters",
+      "model_versioning",
+      "combinations",
+      "LSTM"
+    ],
+    "retrain_list": [
+      "crawler_parameters",
+      "model_versioning",
+      "retraining_store_list",
+      "LSTM"
+    ],
+    "s3_completed_model_ic": [
+      "forecast",
+      "completed_models",
+      "itemcount",
+      "daily",
+      "Prerelease_Sep19",
+      "LSTM-completed-models_--.csv"
+    ],
+    "s3_crawler_params_key": 
+      "LSTM-Enhancements/crawler_parameters/store_list_1240.csv",
+    "s3_final_store_list": "LSTM-Enhancements/crawler_parameters/model_versioning/filter_V1/filter_V1.csv",
+    "s3_final_store_list_extended": "LSTM-Enhancements/crawler_parameters/model_versioning/filter_V2/filter_V2.csv",
+    "s3_outlier_imputation_key_ds": "outliers_record_test/dollarsales/location_num=--/",
+    "s3_outlier_imputation_key_tc": "outliers_record_test/transcount/location_num=--/",
+    "s3_outlier_imputation_key_ic": "outliers_record_test/itemcount/location_num=--/",
+    "s3_inference_key_longer_ic": [
+      "itemcount",
+      "daily",
+      "30thday",
+      "location_num=--"
+      
+    ],
+    "s3_inference_key_longer_ds": [
+      "dollarsales",
+      "daily",
+      "30thday",
+      "location_num=--"
+    ],
+      "s3_inference_key_redundancy_ds": [
+      "dollarsales",
+      "daily",
+      "redundancy",
+      "location_num=--"
+    ],
+    "s3_inference_key_longer_tc": [
+      "transcount",
+      "daily",
+      "30thday",
+      "location_num=--"
+      
+    ],
+    "s3_inference_key_shorter_ic": [
+      "itemcount",
+      "daily",
+      "14thday",
+      "location_num=--"
+    ],
+    "s3_inference_key_shorter_ds": [
+      "dollarsales",
+      "daily",
+      "14thday",
+      "location_num=--"
+      
+    ],
+    "s3_inference_key_shorter_tc": [
+      "transcount",
+      "daily",
+      "14thday",
+      "location_num=--"
+      
+    ],
+      "s3_inference_key_redundancy_tc": [
+      "transcount",
+      "daily",
+      "redundancy",
+      "location_num=--"
+    ],
+      "s3_inference_key_redundancy_ic": [
+      "itemcount",
+      "daily",
+      "redundancy",
+      "location_num=--"
+    ],
+    "s3_model_object_folder_key": [
+      "--",
+      "--",
+      "--"
+    ],
+    "s3_model_object_folder_name_ic": "--_itemcount_--",
+    "s3_model_object_folder_name_ds": "--_dollars_allproducts",
+    "s3_model_object_folder_name_tc": "--_transcount_allproducts",
+    "s3_model_object_key": [
+      "--",
+      "--"
+    ],
+    "s3_model_object_model_name_ic": "--_itemcount_--.h5",
+    "s3_model_object_model_name_ds": "--_dollars_allproducts.h5",
+    "s3_model_object_model_name_tc": "--_transcount_allproducts.h5",
+    "s3_model_props_folder_key": [
+      "--",
+      "--",
+      "--"
+    ],
+    "s3_model_props_json_fname_ic": "--_itemcount_--.json",
+    "s3_model_props_json_fname_ds": "--_dollars_allproducts.json",
+    "s3_model_props_json_fname_tc": "--_transcount_allproducts.json",
+    "s3_model_props_key": [
+      "--",
+      "--"
+    ],
+    "s3_training_data_key": [
+      "Archive",
+      "data_prep",
+      "ItemCount",
+      "final",
+      "daily",
+      "location_num=--"
+    ],
+    "s3_training_data_key_ds": [
+      "dollars",
+      "net",
+      "inside",
+      "daily",
+      "v1",
+      "location_num=--"
+    ],
+    "use_diff_scaler": "robust",
+    "version_table": "LSTM-Enhancements/crawler_parameters/model_versioning/version_table/model_versioning.csv"
+  },
+  "sys": {
+    "cuda_device_backup": "0",
+    "random_seed": 786
+  }
+}
+
+

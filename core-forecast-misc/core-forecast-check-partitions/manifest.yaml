@@ -1,0 +1,26 @@
+base:
+  name: core-forecast-check-partitions
+  version: "check-partitions.0.0.2"
+  system_tag: CORE_FORECAST_CHECK_PARTITIONS
+  src_dir: core_forecast_check_partitions
+  src_dir_prefix: core-forecast-misc/core-forecast-check-partitions  
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

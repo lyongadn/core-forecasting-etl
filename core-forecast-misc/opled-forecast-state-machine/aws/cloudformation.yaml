@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This is a step function lambda that will be used to orchestrate the entire baseline pipeline'
+Parameters:
+  AccountInfoLambdaFunctionName:
+    Type: String
+    Description: VPC info lambda function
+    Default: aws-account-info
+  Name:
+    Description: Name of the project
+    Type: String
+    Default: project-name
+  Bucket:
+    Description: Bucket for lambda artifact
+    Type: String
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    ConstraintDescription: Must be one of dev, test, or prod
+Resources:
+  AwsInfo:
+    Type: Custom::AwsInfo
+    Properties:
+      ServiceToken: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AccountInfoLambdaFunctionName}"
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/GithubActionsIamResourcePermissionsBoundary'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - states.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+      - PolicyName: !Sub ${Environment}-${Name}-policy
+        PolicyDocument:
+          Statement:
+          - Sid: 'StepFunctionPolicy'
+            Effect: Allow
+            Action:
+              - athena:*
+              - cloudwatch:*
+              - states:StartExecution
+              - iam:*
+              - events:*
+              - s3:*
+              - glue:*
+              - ecs:*
+              - lambda:*
+              - events:PutTargets
+              - events:DescribeRule
+              - events:PutRule
+            Resource:   
+              - '*'
+          - Sid: PublishSNSTopic
+            Effect: Allow
+            Action:
+              - sns:Publish
+              - sns:ListSubscriptionsByTopic
+            Resource:
+              - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${Environment}-slack-alerts-topic'
+          - Sid: LambdaPerms
+            Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource:
+              - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-core-forecast-qc-baseline-daily-sales-algorithm'
+              - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-core-forecast-jenkins-trigger'
+      RoleName: !Sub ${Environment}-${Name}
+      Tags:
+      - Key: "ALLOW_GHA_DELETE"
+        Value: "TRUE"
+  StepFunction:
+    Type: AWS::StepFunctions::StateMachine
+    Properties: 
+      DefinitionString: ""
+      RoleArn: !GetAtt 'Role.Arn'
+      StateMachineName: !Sub ${Environment}-${Name}

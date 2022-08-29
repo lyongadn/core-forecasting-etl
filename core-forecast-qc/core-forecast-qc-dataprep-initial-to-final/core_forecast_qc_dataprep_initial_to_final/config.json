@@ -1,0 +1,31 @@
+{
+    "dev": {
+        "database": "store_wise_qc",
+        "dollartranscount_local_path": "/tmp/dollartranscountqc_data.csv",
+        "dollartranscount_qc_upload_table": "dataprep_dollarsalesandtranscount",
+        "dollartranscount_table_schema": "dataprep_generation_date,business_date_max,dollardaily_sum_initial,transdaily_sum_initial ,dollardaily_sum_final,transdaily_sum_final,dollar15min_sum_initial,trans15min_sum_initial,dollar15min_sum_final,trans15min_sum_final,location_num,generation_date,dailyqc",
+        "dollartranscount_upload_key": "test-parameterization/data_lake/storewise_qc/Initial-Final-QC/DollarsalesTranscount/location_num=--/qc_dollars.csv",
+        "itemcount_local_path": "/tmp/itemcountqc_data.csv",
+        "itemcount_qc_upload_table": "dataprep_itemlevelcount",
+        "itemcount_table_schema": "dataprep_generation_date,business_date_max,sum_quantity_daily_initial,sum_quantity_daily_final,sum_quantity_15min_initial,sum_quantity_15min_final,location_num,generation_date,dailyqc",
+        "itemcount_upload_key": "test-parameterization/data_lake/storewise_qc/Initial-Final-QC/ItemCount/location_num=--/qc_item.csv",
+        "prod_bucket": "test-q-forecasting-artifacts",
+        "replica_host_link": "integration-rds-forecast-cluster.cluster-ro-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-integration"
+    },
+    "test": {
+        "database": "store_wise_qc",
+        "dollartranscount_local_path": "/tmp/dollartranscountqc_data.csv",
+        "dollartranscount_qc_upload_table": "dataprep_dollarsalesandtranscount",
+        "dollartranscount_table_schema": "dataprep_generation_date,business_date_max,dollardaily_sum_initial,transdaily_sum_initial ,dollardaily_sum_final,transdaily_sum_final,dollar15min_sum_initial,trans15min_sum_initial,dollar15min_sum_final,trans15min_sum_final,location_num,generation_date,dailyqc",
+        "dollartranscount_upload_key": "test-parameterization/data_lake/storewise_qc/Initial-Final-QC/DollarsalesTranscount/location_num=--/qc_dollars.csv",
+        "itemcount_local_path": "/tmp/itemcountqc_data.csv",
+        "itemcount_qc_upload_table": "dataprep_itemlevelcount",
+        "itemcount_table_schema": "dataprep_generation_date,business_date_max,sum_quantity_daily_initial,sum_quantity_daily_final,sum_quantity_15min_initial,sum_quantity_15min_final,location_num,generation_date,dailyqc",
+        "itemcount_upload_key": "test-parameterization/data_lake/storewise_qc/Initial-Final-QC/ItemCount/location_num=--/qc_item.csv",
+        "prod_bucket": "test-q-forecasting-artifacts",
+        "replica_host_link": "integration-rds-forecast-cluster.cluster-ro-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-integration"
+    },
+    "prod": {}
+}

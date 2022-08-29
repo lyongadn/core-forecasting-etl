@@ -1,0 +1,27 @@
+{
+    "dev": {
+        "region_name": "us-east-1",
+        "secret_key": "jenkins-job-trigger",
+        "forecast": "forecasting-engine/Test-Aurora-Truncate-SlackNofication-prep",
+        "baseline": "forecasting-engine/Test-Baseline-Forecast-Aurora-Loader-execute-lambda",
+        "limits":"Test-Aurora-All-Metric-Limits-New-execute-lambda",
+        "ratio": "Test-Ratio-Generation-Pipeline"
+        
+    },
+    "test": {
+        "region_name": "us-east-1",
+        "secret_key": "jenkins-job-trigger",
+        "forecast": "forecasting-engine/Test-Aurora-Truncate-SlackNofication-prep",
+        "baseline": "forecasting-engine/Test-Baseline-Forecast-Aurora-Loader-execute-lambda",
+        "limits":"Test-Aurora-All-Metric-Limits-New-execute-lambda",
+        "ratio": "Test-Ratio-Generation-Pipeline"
+    },
+    "prod": {
+        "region_name": "us-east-1",
+        "secret_key": "jenkins-job-trigger",
+        "forecast": "Prod-Aurora-Truncate-SlackNofication-prep",
+        "baseline": "Prod-Baseline-Forecast-Aurora-Loader-execute-lambda",
+        "limits":"Prod-Aurora-All-Metric-Limits-New-execute-lambda",
+        "ratio": "Prod-Ratio-Generation-Pipeline"        
+    }
+}

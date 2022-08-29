@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This lambda will trigger the Jenkins job for various pipelines'
+Parameters:
+  Name:
+    Description: Name of the project
+    Type: String
+    Default: project-name
+  Bucket:
+    Description: Bucket for lambda artifact
+    Type: String
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    ConstraintDescription: Must be one of dev, test, or prod
+  LambdaArtifact:
+    Type: String
+    Description: Name of file that contains lambda code
+    Default: lambda_function.zip
+  AwsAccountInfoLambda:
+    Type: String
+    Description: VPC info lambda function
+    Default: aws-account-info
+Resources:
+  AwsInfo:
+    Type: Custom::AwsInfo
+    Properties:
+      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AwsAccountInfoLambda}'
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/GithubActionsIamResourcePermissionsBoundary'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+      - PolicyName: !Sub ${Environment}-${Name}-policy
+        PolicyDocument:
+          Statement:
+            - Sid: SecretsManagerPolicy
+              Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - kms:Decrypt
+              Resource:
+                - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+            - Sid: EC2Perms
+              Effect: Allow
+              Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DeleteNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSecurityGroups
+                - ec2:DescribeSubnets
+                - ec2:CreateTags
+                - ec2:DeleteTags
+                - ec2:DescribeVpcEndpoints
+                - ec2:DescribeRouteTables
+              Resource:
+                - '*'
+      RoleName: !Sub ${Environment}-${Name}
+      Tags:
+      - Key: "ALLOW_GHA_DELETE"
+        Value: "TRUE"
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: ' '
+      FunctionName: !Sub ${Environment}-${Name}
+      Handler: 'core_forecast_jenkins_trigger.lambda_function.lambda_handler'
+      MemorySize: 512
+      Timeout: 200
+      VpcConfig:
+        SubnetIds:
+          - !GetAtt 'AwsInfo.AppSubnet1'
+          - !GetAtt 'AwsInfo.AppSubnet2'
+        SecurityGroupIds:
+          - !GetAtt 'AwsInfo.AppSecurityGroup'
+      Code:
+        S3Bucket: !Ref 'Bucket'
+        S3Key: !Ref 'LambdaArtifact'
+      Role: !GetAtt 'Role.Arn'
+      Runtime: python3.8
+      Environment:
+        Variables:
+          ENV: !Ref 'Environment'

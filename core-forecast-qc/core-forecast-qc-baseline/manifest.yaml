@@ -1,0 +1,29 @@
+base:
+  name: core-forecast-qc-baseline
+  version: "baseline-forecast-qc.0.0.4"
+  system_tag: CORE_FORECAST_QC_BASELINE
+  src_dir: core_forecast_qc_baseline
+  src_dir_prefix: core-forecast-qc/core-forecast-qc-baseline
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+  servicenow:
+    create_change: False
+    user_group:
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

@@ -1,0 +1,29 @@
+base:
+  name: core-forecast-baseline-ingredient
+  version: "baseline-ingredient.0.0.1"
+  slack_channel: forecast-deployment-alerts
+  src_dir: core_forecast_baseline_ingredient 
+  src_dir_prefix: core-forecast-baseline/core-forecast-baseline-ingredient 
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+  glue_role_name: dev-baseline-ingredient-glue-role
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+  glue_role_name: test-baseline-ingredient-glue-role
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod
+  glue_role_name: prod-baseline-ingredient-glue-role

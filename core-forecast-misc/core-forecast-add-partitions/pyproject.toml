@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "core-forecast-add-partitions"
+version = "0.0.1" # Version managed in manifest.yaml
+description = ""
+authors = [] # ["John Smith <john@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.25.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

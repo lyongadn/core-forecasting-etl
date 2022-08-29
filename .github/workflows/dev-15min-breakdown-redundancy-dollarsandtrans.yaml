@@ -1,0 +1,277 @@
+name: dev-15min-breakdown-redundancy-dollarsandtrans
+on:
+  push:
+    paths:
+    - 'core-forecast-15min-breakdown/core-forecast-15min-breakdown-redundancy-dollarsandtrans/**'
+    - '.github/workflows/dev-15min-breakdown-redundancy-dollarsandtrans.yaml'
+    branches:
+    - develop
+
+env:
+  ENVIRONMENT: dev
+  
+jobs:
+  # Load env vars and other preliminary stuff
+  init:
+    name: Init
+    runs-on: ubuntu-latest
+    steps:
+    # Checout repo
+    - uses: actions/checkout@v2
+    # Checkout private cfacorp actions lib
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    # Load env vars 
+    - name: env-loader
+      uses: ./.github/private-actions/env-loader
+      with:
+        env-file: ./core-forecast-15min-breakdown/core-forecast-15min-breakdown-redundancy-dollarsandtrans/manifest.yaml
+        filter: base,${{ env.ENVIRONMENT }}
+    - run: echo GITHUB_REF_SLUG=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+    # Set NP VERSION with suffix
+    - name: set version (snapshot)
+      if: github.ref != 'refs/heads/master'
+      run: |
+        echo "VERSION=${{ env.VERSION }}-dev.${{ github.run_number }}" >> $GITHUB_ENV
+    outputs:
+      env: ${{ toJson(env) }}
+      account: ${{ env.ACCOUNT }}
+  # Build Artifact and Push to Artifactory
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init]
+    steps:
+    # Checout repo
+    - uses: actions/checkout@v2
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    # Build
+    - name: Build
+      uses: chick-fil-a/gha-docker-run@v1
+      with: 
+        image: lambci/lambda:build-python3.8
+        run: |
+          pip install -t ./dist/src -r ./${{ env.SRC_DIR_PREFIX }}/${{ env.SRC_DIR }}/requirements.txt
+          cp -r ./${{ env.SRC_DIR_PREFIX }}/${{ env.SRC_DIR }} ./dist/src/
+    # Package
+    - name: Package
+      run: |
+        cd ./dist/src
+        zip -r ../${{ env.SRC_DIR }}-${{ env.VERSION }}.zip ./*
+    - name: Publish Artifact
+      run: |
+        curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T dist/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip
+        curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T ${{ env.SRC_DIR_PREFIX }}/aws/cloudformation.yaml ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+    - name: Push tag
+      uses: ./.github/private-actions/git-tag
+      with:
+        tag: v${{ env.VERSION }}
+# Deploy to AWS Account
+  deploy:
+    name: Deploy
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init,build]
+    runs-on: ${{ needs.init.outputs.account }} # Specifying which runner to run on
+    steps:
+    - uses: chick-fil-a/gha-clear-workspace@v1
+    - name: Set env vars
+      run: |
+        echo "BUCKET=$(aws sts get-caller-identity --query Account --output text)-us-east-1-deploy" >> $GITHUB_ENV
+        echo "LAMBDA_ARTIFACT=${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip" >> $GITHUB_ENV
+    - name: Download Artifacts
+      run: |
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+    - name: Upload Lambda Code
+      run: |
+        aws s3api create-bucket --bucket ${{ env.BUCKET }}  # Creates bucket if it doesn't exist
+        aws s3 cp ${{ env.SRC_DIR }}-${{ env.VERSION }}.zip s3://${{ env.BUCKET }}/${{ env.LAMBDA_ARTIFACT }}
+        aws s3 cp cloudformation.yaml s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+    - name: Deploy Cloudformation
+      uses: chikin-4x/aws-cloudformation-github-deploy@master
+      with:
+        name: ${{ env.ENVIRONMENT}}-${{ env.NAME }}
+        template: cloudformation.yaml
+        capabilities: CAPABILITY_NAMED_IAM
+        parameter-overrides: >
+          Name=${{ env.NAME }},
+          Environment=${{ env.ENVIRONMENT }},
+          Bucket=${{ env.BUCKET }},
+          LambdaArtifact=${{ env.LAMBDA_ARTIFACT }}          
+        tags: |
+          SystemTag: ${{ env.SYSTEM_TAG }}
+          Environment: ${{ env.ENVIRONMENT }}
+
+
+
+
+
+
+
+
+
+# name: Deploy to Dev
+# on:
+#   # push:
+#   #   branches:
+#   #   - develop
+#   workflow_dispatch:
+
+# concurrency:
+#   group: ${{ github.workflow }}
+#   cancel-in-progress: true
+
+# env:
+#   ENVIRONMENT: dev
+
+# jobs:
+#   # Load env vars and other preliminary stuff
+#   main:
+#     name: Main
+#     runs-on: ubuntu-latest
+#     steps:
+#     # Checout repo
+#     - uses: actions/checkout@v2
+#     # Checkout private cfacorp actions lib
+#     - name: load cfacorp actions
+#       uses: actions/checkout@v2
+#       with:
+#         repository: cfacorp/github-actions
+#         ref: master
+#         token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+#         path: .github/private-actions
+#     # Load env vars
+#     - name: env-loader
+#       uses: ./.github/private-actions/env-loader
+#       with:
+#         env-file: ./manifest.yaml
+#         filter: base,${{ env.ENVIRONMENT }}
+#     - name: Setup cache
+#       uses: actions/cache@v2
+#       with:
+#         path: |
+#           ${{ env.CACHE_PATHS }}
+#         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+#         restore-keys: | # Comment out to not restore anything from previous builds
+#           ${{ runner.os }}-poetry-
+#     - run: echo GITHUB_REF_SLUG=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+#     # Set NP VERSION with suffix
+#     - name: set version (snapshot)
+#       if: github.ref != 'refs/heads/master'
+#       run: |
+#         echo "VERSION=${{ env.VERSION }}-dev.${{ github.run_number }}" >> $GITHUB_ENV
+#     - name: Run gha-wiz
+#       uses: cfacorp/gha-wiz@v2
+#       with:
+#         iac: aws/
+#         wiz_client_id: ${{ secrets.WIZ_CLI_CLIENT_ID }}
+#         wiz_client_secret: ${{ secrets.WIZ_CLI_CLIENT_SECRET }}
+#     - name: Run Tests
+#       uses: chick-fil-a/gha-docker-run@v1
+#       with:
+#         image: lambci/lambda:build-python3.8
+#         run: |
+#           mkdir -p reports;
+#           pip install poetry;
+#           pip install pytest pytest-cov;
+#           poetry export -f requirements.txt  -o requirements.txt --without-hashes  
+#           pip install -r requirements.txt;
+#           coverage run --source=${{ env.SRC_DIR }} -m pytest --junitxml=${{ env.SONAR_XUNIT_REPORT }} -rA --tb=line test;
+#           coverage xml -o ${{ env.SONAR_COVERAGE_REPORT }} -i;
+#           coverage report;
+#     # Scan with Sonar
+#     - name: Setup sonar-scanner
+#       uses: ./.github/private-actions/sonar-scanner
+#       with:
+#         sonar-token: ${{ secrets.SONAR_TOKEN }}
+#         args: |
+#           -X -Dsonar.host.url=${{ env.SONAR_SERVER_URL }} \
+#             -Dsonar.projectKey=${{ env.NAME }} \
+#             -Dsonar.projectName=${{ env.NAME }} \
+#             -Dsonar.projectVersion=${{ env.VERSION }} \
+#             -Dsonar.sources=${{ env.SRC_DIR }} \
+#             -Dsonar.qualitygate.wait=${{ env.SONAR_QUALITY_GATE_WAIT }} \
+#             `#FOR BRANCH ANALYSIS` \
+#             -Dsonar.branch.name=${{ env.GITHUB_REF_SLUG }} \
+#             `#FOR CODE COVERAGE` \
+#             -Dsonar.python.coverage.reportPaths=${{ env.SONAR_COVERAGE_REPORT }} \
+#             `#FOR UNIT TESTS` \
+#             -Dsonar.tests=./test/ \
+#             -Dsonar.python.xunit.reportPath=${{ env.SONAR_XUNIT_REPORT }}
+#     # Build
+#     - name: Build
+#       uses: chick-fil-a/gha-docker-run@v1
+#       with:
+#         image: lambci/lambda:build-python3.8
+#         run: |
+#           pip install -t ./dist/src -r requirements.txt;
+#           cp -r ./${{ env.SRC_DIR }} ./dist/src/
+#     # Package
+#     - name: Package
+#       run: |
+#         cd ./dist/src
+#         zip -r ../${{ env.SRC_DIR }}-${{ env.VERSION }}.zip ./*
+#     - name: Publish Artifact
+#       run: |
+#         curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T dist/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip
+#         curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T aws/cloudformation.yaml ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+#     - name: Push tag
+#       uses: ./.github/private-actions/git-tag
+#       with:
+#         tag: v${{ env.VERSION }}
+#     outputs:
+#       env: ${{ toJson(env) }}
+#       account: ${{ env.ACCOUNT }}
+# # Deploy to AWS Account
+#   deploy:
+#     name: Deploy
+#     env: ${{ fromJson(needs.main.outputs.env) }} # Setting env to env output from previous job
+#     needs: [main]
+#     runs-on: ${{ needs.main.outputs.account }} # Specifying which runner to run on
+#     steps:
+#     - uses: chick-fil-a/gha-clear-workspace@v1
+#     - name: Set env vars
+#       run: |
+#         echo "BUCKET=$(aws sts get-caller-identity --query Account --output text)-us-east-1-deploy" >> $GITHUB_ENV
+#         echo "LAMBDA_ARTIFACT=${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip" >> $GITHUB_ENV
+#     - name: Download Artifacts
+#       run: |
+#         curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip
+#         curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+#     - name: Bucket search
+#       run: |
+#         echo "BUCKET_SEARCH=$(aws s3api head-bucket --bucket ${{ env.BUCKET }} 2>&1 | grep -o '404\|403') " >> $GITHUB_ENV
+#     - name: Create bucket
+#       if: contains(env.BUCKET_SEARCH, '40')
+#       run: |
+#         aws s3api create-bucket --bucket ${{ env.BUCKET }}
+#     - name: Upload Lambda Code
+#       run: |
+#         aws s3 cp ${{ env.SRC_DIR }}-${{ env.VERSION }}.zip s3://${{ env.BUCKET }}/${{ env.LAMBDA_ARTIFACT }}
+#         aws s3 cp cloudformation.yaml s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+#     - name: Deploy Cloudformation
+#       uses: chikin-4x/aws-cloudformation-github-deploy@master
+#       with:
+#         name: ${{ env.NAME }}
+#         template: cloudformation.yaml
+#         capabilities: CAPABILITY_NAMED_IAM
+#         parameter-overrides: |
+#           Name: ${{ env.NAME }}
+#           Environment: ${{ env.ENVIRONMENT }}
+#           Bucket: ${{ env.BUCKET }}
+#           LambdaArtifact: ${{ env.LAMBDA_ARTIFACT }}
+#         tags: |
+#           SystemTag: ${{ env.SYSTEM_TAG }}
+#           Environment: ${{ env.ENVIRONMENT }}

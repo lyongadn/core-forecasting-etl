@@ -1,0 +1,78 @@
+name: prod-baseline-dollarsandtrans
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag/Version to deploy to Prod'
+        required: true
+
+env:
+  ENVIRONMENT: prod
+
+jobs:
+  init:
+    name: Init
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    - name: env-loader
+      uses: ./.github/private-actions/env-loader
+      with:
+        env-file: ./core-forecast-baseline/core-forecast-baseline-dollarsandtrans/manifest.yaml
+        filter: base,${{ env.ENVIRONMENT }}
+    - run: |
+        echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    - if: startsWith( ${{ env.VERSION }}, "v" )
+      run: |
+        echo "VERSION=${VERSION//v}" >> $GITHUB_ENV
+    outputs:
+      env: ${{ toJson(env) }}
+      account: ${{ env.ACCOUNT }}
+  # Create/Update ECS Task  
+  deploy:
+    name: Deploy
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init]
+    runs-on: ${{ needs.init.outputs.account }} # Specifying which runner to run on
+    steps:
+    - name: Set env vars
+      run: |
+        echo "BUCKET=$(aws sts get-caller-identity --query Account --output text)-us-east-1-deploy" >> $GITHUB_ENV
+        echo "ARTIFACTORY_PROJECT_BASE_URL=${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}" >> $GITHUB_ENV
+    - name: Download Artifacts
+      run: |
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_PROJECT_BASE_URL }}/cloudformation.json
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_PROJECT_BASE_URL }}/etl_job.py
+    - name: Upload Artifacts
+      run: |
+        aws s3api create-bucket --bucket ${{ env.BUCKET }}  # Creates bucket if it doesn't exist
+        aws s3 cp cloudformation.json s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.json
+        aws s3 cp etl_job.py s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/etl_job.py
+    - name: Deploy Cloudformation
+      uses: aws-actions/aws-cloudformation-github-deploy@v1
+      with:
+        name: ${{ env.ENVIRONMENT }}-${{ env.NAME }}
+        template: cloudformation.json
+        capabilities: CAPABILITY_NAMED_IAM
+        parameter-overrides: >
+          Name=${{ env.NAME }},
+          Environment=${{ env.ENVIRONMENT }},
+          DeploymentBucket=${{ env.BUCKET }},
+          ETLScriptS3Key=${{ env.NAME }}/${{ env.VERSION }}/etl_job.py,
+          GlueRoleName=${{ env.GLUE_ROLE_NAME }}
+    # Checkout cfacorp github actions
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions

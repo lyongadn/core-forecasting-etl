@@ -1,0 +1,75 @@
+name: Deploy to Dev
+on:
+  push:
+    branches:
+    - develop
+
+env:
+  ENVIRONMENT: dev
+
+
+jobs:
+  init:
+    name: Init
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: load cfacorp actions
+        uses: actions/checkout@v2
+        with:
+          repository: cfacorp/github-actions
+          ref: develop
+          token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+          path: .github/private-actions
+
+
+      - name: env-loader
+        uses: ./.github/private-actions/env-loader
+        with:
+          env-file: ./core-forecast-inference/lstm-inference-dollarsales/container/decision_trees/lstm_automation_config_ds.json
+
+      - name: Build the Docker
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 173754725891.dkr.ecr.us-east-1.amazonaws.com
+          docker build . -t sagemaker-spark:${VERSION}
+          docker logout https://173754725891.dkr.ecr.us-east-1.amazonaws.com
+      - name: Artifactory Login, Tag, and Push
+        run: |
+          echo "Logging into Artifactory"
+          docker login -u ${{ secrets.ARTIFACTORY_USER }} -p ${{ secrets.ARTIFACTORY_TOKEN }} $DOCKER_REGISTRY
+          echo "Tagging for Artifactory both build_number Tag and Latest Tag"
+          docker tag ${SPARK_REPOSITORY}:${VERSION} $DOCKER_REGISTRY/$NAME:$VERSION-${{ github.run_number }}
+          docker tag ${SPARK_REPOSITORY}:${VERSION} $DOCKER_REGISTRY/$NAME:$VERSION-dev 
+          docker tag ${SPARK_REPOSITORY}:${VERSION} $DOCKER_REGISTRY/$NAME:$VERSION
+          echo "Push to Artifactory"
+          docker push $DOCKER_REGISTRY/$NAME
+      - name: Login to ECR
+        run: |
+          echo "Now Tag and Push to ECR, Create if Necessary"
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          aws ecr get-login-password --region ${REGION_FOR_PUSH} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION_FOR_PUSH}.amazonaws.com
+      - name: Check if ECR Repo Exists
+        id: check-exists
+        continue-on-error: true
+        run: |
+          echo "Check if ECR Repo exists"
+          aws ecr describe-repositories --repository-names "${SPARK_REPOSITORY}" > /dev/null 2>&1
+      - name: Create Repo if Doesn't Exist
+        if: steps.check-exists.outcome != 'success' || steps.check-exists.conclusion != 'success'
+        run: |
+          echo "Creating Repository"
+          aws ecr create-repository --repository-name ${SPARK_REPOSITORY} > /dev/null
+      - name: Tag and Push to ECR
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "Tagging Docker"
+          docker tag $DOCKER_REGISTRY/$NAME:$VERSION ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION_FOR_PUSH}.amazonaws.com/${SPARK_REPOSITORY}:${VERSION}
+          echo "Pushing Docker"
+          docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION_FOR_PUSH}.amazonaws.com/${SPARK_REPOSITORY}:${VERSION}
+      - name: Cleanup
+        if: always()
+        run: rm -rf /home/runner/.docker/config.json
+    outputs:
+      env: ${{ toJson(env) }}

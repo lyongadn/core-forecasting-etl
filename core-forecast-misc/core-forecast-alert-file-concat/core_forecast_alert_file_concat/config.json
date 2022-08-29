@@ -1,0 +1,21 @@
+{
+    "dev": {
+        "prod_bucket":"dev-q-forecasting-artifacts",
+        "alert_local_path":"/tmp/alert___batch__.parquet",
+        "alert_upload_path":"dev-parameterization/JSON_Alerts_Final/__forecast__/generation_date=__gen_date__/alert___batch__.parquet"
+
+    },
+
+    "test": {
+        "prod_bucket":"test-q-forecasting-artifacts",
+        "alert_local_path":"/tmp/alert___batch__.parquet",
+        "alert_upload_path":"test-parameterization/JSON_Alerts_Final/__forecast__/generation_date=__gen_date__/alert___batch__.parquet"
+
+    },
+
+    "prod":{
+        "prod_bucket":"prod-q-forecasting-artifacts",
+        "alert_local_path":"/tmp/alert___batch__.parquet",
+        "alert_upload_path":"prod-parameterization/JSON_Alerts_Final/__forecast__/generation_date=__gen_date__/alert___batch__.parquet"
+    }
+}

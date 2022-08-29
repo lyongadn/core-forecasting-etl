@@ -1,0 +1,32 @@
+{
+    "dev": {
+        "15min_dollar_redundancy_table_name": "15min_dollarsales_lstm_redundancy",
+        "15min_dollartranscount_redundancy_upload_table_name": "redundancy_15min_dollarsandtranscount",
+        "15min_dollartranscount_upload_key": "prod-parameterization/data_lake/storewise_qc/Redundancy-QC/DollarTranscount/15min/location_num=--/qc_data.csv",
+        "15min_itemcount_redundancy_table_name": "15min_itemcount_lstm_redundancy",
+        "15min_itemcount_redundancy_upload_table_name": "redundancy_15min_itemcount",
+        "15min_itemcount_upload_key": "prod-parameterization/data_lake/storewise_qc/Redundancy-QC/Itemcount/15min/location_num=--/qc_data.csv",
+        "15min_transcount_redundancy_table_name": "15min_transcount_lstm_redundancy",
+        "daily_dollar_redundancy_table_name": "daily_dollarsales_lstm_redundancy",
+        "daily_dollartranscount_redundancy_upload_table_name": "redundancy_daily_dollarsandtranscount",
+        "daily_dollartranscount_upload_key": "prod-parameterization/data_lake/storewise_qc/Redundancy-QC/DollarTranscount/daily/location_num=--/qc_data.csv",
+        "daily_itemcount_redundancy_table_name": "daily_itemcount_lstm_redundancy",
+        "daily_itemcount_redundancy_upload_table_name": "redundancy_daily_itemcount",
+        "daily_itemcount_upload_key": "prod-parameterization/data_lake/storewise_qc/Redundancy-QC/Itemcount/daily/location_num=--/qc_data.csv",
+        "daily_transcount_redundancy_table_name": "daily_transcount_lstm_redundancy",
+        "database": "store_wise_qc",
+        "dollartranscount_local_path": "/tmp/dollartranscount_qc.csv",
+        "dollartranscount_table_schema": "forecast_generation_date,business_date,location_num,generation_date,forecast_qc",
+        "itemcount_local_path": "/tmp/itemcount_qc.csv",
+        "itemcount_table_schema": "forecast_generation_date,business_date,expected_items,actual_items,location_num,generation_date,forecast_qc",
+        "place_holder_15min": "15min",
+        "place_holder_daily": "daily",
+        "prod_bucket": "prod-q-forecasting-artifacts",
+        "redundancy_forecast_from": "25",
+        "redundancy_forecast_to": "29",
+        "replica_host_link": "prod-rds-forecast-cluster.cluster-ro-cisakqjjjrn2.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-prod"
+    },
+    "test": {},
+    "prod": {}
+}

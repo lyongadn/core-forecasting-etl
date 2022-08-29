@@ -1,0 +1,30 @@
+{
+    "dev": {
+        "step_function_arn" : "arn:aws:states:us-east-1:186277090777:stateMachine:dev-aws-forecast-ratio-state-machine",
+        "step_function_name" : "dev-aws-forecast-ratio-state-machine"
+    },
+    "test": {
+        "ratio": 
+        {
+            "step_function_arn" : "arn:aws:states:us-east-1:186277090777:stateMachine:test-aws-forecast-ratio-state-machine",
+            "step_function_name" : "test-aws-forecast-ratio-state-machine"
+        },
+        "baseline":
+        {
+            "step_function_arn" : "arn:aws:states:us-east-1:186277090777:stateMachine:test-core-forecast-baseline-step-function",
+            "step_function_name" : "test-core-forecast-baseline-step-function"
+        }
+    },
+    "prod": {
+        "ratio":
+        {
+            "step_function_arn" : "arn:aws:states:us-east-1:725706091682:stateMachine:prod-aws-forecast-ratio-state-machine",
+            "step_function_name" : "prod-aws-forecast-ratio-state-machine"
+        },
+        "baseline":
+        {
+            "step_function_arn" : "arn:aws:states:us-east-1:725706091682:stateMachine:prod-core-forecast-baseline-step-function",
+            "step_function_name" : "prod-core-forecast-baseline-step-function"
+        }
+    }
+}

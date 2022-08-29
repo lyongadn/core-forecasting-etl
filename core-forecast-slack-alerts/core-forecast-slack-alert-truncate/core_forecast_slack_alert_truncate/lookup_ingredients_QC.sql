@@ -1,0 +1,1 @@
+select coalesce(count(distinct(generation_date)),0) from ml_preprod.lookup_ingredients;

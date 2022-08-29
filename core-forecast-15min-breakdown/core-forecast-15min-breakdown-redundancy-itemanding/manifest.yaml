@@ -1,0 +1,31 @@
+base:
+  name: core-forecast-15min-breakdown-redundancy-itemanding
+  version: "15min-breakdown-redundancy-itemanding.0.0.3"
+  system_tag: CORE_FORECAST_15MIN_BREAKDOWN_REDUNDANCY_ITEMANDING
+  src_dir: core_forecast_15min_breakdown_redundancy_itemanding 
+  src_dir_prefix: core-forecast-15min-breakdown/core-forecast-15min-breakdown-redundancy-itemanding
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+    quality_gate_wait: false
+  servicenow:
+    create_change: False
+    user_group: 
+ 
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

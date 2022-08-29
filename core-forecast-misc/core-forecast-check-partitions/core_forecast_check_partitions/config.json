@@ -1,0 +1,37 @@
+{
+    "dev": {
+        "prod_bucket":"dev-q-forecasting-artifacts",
+        "table_name":"initial_dollarsalesandtranscount_daily",
+        "database":"ml_preprod",
+        "partition_query":"core_forecast_check_partitions/get_partitions_query.sql"
+
+    },
+
+    "test": {
+        "prod_bucket":"test-q-forecasting-artifacts",
+        "table_name":"initial_dollarsalesandtranscount_daily",
+        "database":"ml_preprod",
+        "partition_query":"core_forecast_check_partitions/get_partitions_query.sql",
+        "region":"us-east-1",
+        "secret_key": "cfa-rdskey-integration",
+        "columns" :["location_num","partition_name"],
+        "partitions_lambda":"test-core-forecast-add-partitions",
+        "slack_channel": "integration-alerts",
+        "slack_alerts_topic": "arn:aws:sns:us-east-1:186277090777:test-slack-alerts-topic"
+
+    },
+
+    "prod":{
+        "prod_bucket":"prod-q-forecasting-artifacts",
+        "table_name":"initial_dollarsalesandtranscount_daily",
+        "database":"ml_preprod",
+        "partition_query":"core_forecast_check_partitions/get_partitions_query.sql",
+        "region":"us-east-1",
+        "secret_key":"cfa-rdskey-prod",
+        "columns" :["location_num","partition_name"],
+        "partitions_lambda":"prod-core-forecast-add-partitions",
+        "slack_channel": "prod-forecast-alerts",
+        "slack_alerts_topic": "arn:aws:sns:us-east-1:725706091682:prod-slack-alerts-topic"
+
+    }
+}

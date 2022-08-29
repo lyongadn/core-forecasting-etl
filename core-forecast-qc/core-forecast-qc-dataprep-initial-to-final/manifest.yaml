@@ -1,0 +1,30 @@
+base:
+  name: core-forecast-qc-dataprep-initial-to-final
+  version: "dataprep-initial-to-final.0.0.1"
+  system_tag: CORE_FORECAST_QC_DATAPREP_INITIAL_TO_FINAL
+  src_dir: core_forecast_qc_dataprep_initial_to_final 
+  src_dir_prefix: core-forecast-qc/core-forecast-qc-dataprep-initial-to-final
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+    quality_gate_wait: false
+  servicenow:
+    create_change: False
+    user_group: 
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod

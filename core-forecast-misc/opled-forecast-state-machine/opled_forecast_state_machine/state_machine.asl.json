@@ -1,0 +1,759 @@
+{
+  "Comment": "Operator Led Delivery 14day transaction forecast pipeline",
+  "StartAt": "Initial State Check",
+  "States": {
+      "Initial State Check": {
+          "Type": "Choice",
+          "Choices": [
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Incremental Location Ingest"
+                      }
+                  ],
+                  "Next": "Incremental Location Ingest"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Incremental Transaction Ingest"
+                      }
+                  ],
+                  "Next": "Incremental Transaction Ingest"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Input Data QC"
+                      }
+                  ],
+                  "Next": "Input Data QC"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Input location bactching"
+                      }
+                  ],
+                  "Next": "Input location bactching"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Input Data Prep"
+                      }
+                  ],
+                  "Next": "Input Data Prep"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Input data prep QC"
+                      }
+                  ],
+                  "Next": "Input data prep QC"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Model loc batching"
+                      }
+                  ],
+                  "Next": "Model loc batching"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Model Input QC"
+                      }
+                  ],
+                  "Next": "Model Input QC"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Model Training"
+                      }
+                  ],
+                  "Next": "Model Training"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Model Inference"
+                      }
+                  ],
+                  "Next": "Model Inference"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Inference QC"
+                      }
+                  ],
+                  "Next": "Inference QC"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Inference QC"
+                      }
+                  ],
+                  "Next": "Inference QC Alerts"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Model data Aggregate"
+                      }
+                  ],
+                  "Next": "Model data Aggregate"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Opled Benchmark"
+                      }
+                  ],
+                  "Next": "Opled Benchmark"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Opled Accuracy"
+                      }
+                  ],
+                  "Next": "Opled Accuracy"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "LogFailuretoSNS"
+                      }
+                  ],
+                  "Next": "LogFailuretoSNS"
+              },
+              {
+                  "And": [
+                      {
+                          "Variable": "$.start_state",
+                          "IsPresent": true
+                      },
+                      {
+                          "Variable": "$.start_state",
+                          "StringEquals": "Failure"
+                      }
+                  ],
+                  "Next": "Failure"
+              }
+          ],
+          "Default": "Incremental Location Ingest"
+      },
+      "Incremental Location Ingest": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-input-location-prep",
+          "Next": "Incremental Transaction Ingest",
+          "ResultPath": null,
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Incremental Transaction Ingest": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-input-data-ingest",
+          "Next": "Input Data QC",
+          "ResultPath": null,
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Input Data QC": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-input-data-qc",
+          "ResultPath": null,
+          "Next": "Input location bactching",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Input location bactching": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-input-data-loc-batching",
+          "Next": "Input Data Prep",
+          "ResultPath": "$",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Input Data Prep": {
+          "Type": "Map",
+          "ItemsPath": "$.loc_batches",
+          "ResultPath": null,
+          "Parameters": {
+              "input.$": "$$.Map.Item.Value"
+          },
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ],
+          "Iterator": {
+              "StartAt": "DATAPREP",
+              "States": {
+                  "DATAPREP": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-input-data-prep",
+                      "End": true
+                  }
+              }
+          },
+          "Next": "Input data prep QC"
+      },
+      "Input data prep QC": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-input-data-prep-qc",
+          "ResultPath": null,
+          "Next": "Model loc batching",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Model loc batching": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-model-data-loc-batching",
+          "ResultPath": "$.model_locations",
+          "Next": "Model Input QC",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Model Input QC": {
+          "Type": "Map",
+          "ItemsPath": "$.loc_batches",
+          "ResultPath": null,
+          "Parameters": {
+              "input.$": "$$.Map.Item.Value"
+          },
+          "Iterator": {
+              "StartAt": "MODELQC",
+              "States": {
+                  "MODELQC": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-model-data-qc-prep",
+                      "End": true
+                  }
+              }
+          },
+          "Next": "Model Training",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Model Training": {
+          "Type": "Task",
+          "Resource": "arn:aws:states:::ecs:runTask.sync",
+          "ResultPath": null,
+          "Parameters": {
+              "LaunchType": "FARGATE",
+              "Cluster": "arn:aws:ecs:<region>:<account_id>:cluster/<env>-fargate-cluster",
+              "TaskDefinition": "arn:aws:ecs:<region>:<account_id>:task-definition/<env>-opled-qrf-v1-training-task",
+              "Overrides": {
+                  "ContainerOverrides": [
+                      {
+                          "Name": "<env>-opled-qrf-v1-training-task",
+                          "Environment": [
+                              {
+                                  "Name": "ENV",
+                                  "Value": "<env>"
+                              }
+                          ]
+                      }
+                  ]
+              },
+              "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                      "SecurityGroups": [
+                          "${AwsInfo.AppSecurityGroup}"
+                      ],
+                      "Subnets": [
+                          "${AwsInfo.AppSubnet1}",
+                          "${AwsInfo.AppSubnet2}",
+                          "${AwsInfo.AppSubnet3}",
+                          "${AwsInfo.AppSubnet4}"
+                      ],
+                      "AssignPublicIp": "DISABLED"
+                  }
+              }
+          },
+          "Next": "Model Inference",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Model Inference": {
+          "Type": "Map",
+          "ItemsPath": "$.loc_batches",
+          "ResultPath": null,
+          "MaxConcurrency": 10,
+          "Parameters": {
+              "input.$": "States.JsonToString($$.Map.Item.Value)"
+          },
+          "Iterator": {
+              "StartAt": "Batch Inference",
+              "States": {
+                  "Batch Inference": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:states:::ecs:runTask.sync",
+                      "ResultPath": null,
+                      "Parameters": {
+                          "LaunchType": "FARGATE",
+                          "Cluster": "arn:aws:ecs:<region>:<account_id>:cluster/<env>-fargate-cluster",
+                          "TaskDefinition": "arn:aws:ecs:<region>:<account_id>:task-definition/<env>-opled-qrf-v1-inference-task",
+                          "Overrides": {
+                              "ContainerOverrides": [
+                                  {
+                                      "Name": "<env>-opled-qrf-v1-inference-task",
+                                      "Environment": [
+                                          {
+                                              "Name": "ENV",
+                                              "Value": "<env>"
+                                          },
+                                          {
+                                              "Name": "LOCATIONS",
+                                              "Value.$": "$.input"
+                                          }
+                                      ]
+                                  }
+                              ]
+                          },
+                          "NetworkConfiguration": {
+                              "AwsvpcConfiguration": {
+                                  "SecurityGroups": [
+                                      "${AwsInfo.AppSecurityGroup}"
+                                  ],
+                                  "Subnets": [
+                                      "${AwsInfo.AppSubnet1}",
+                                      "${AwsInfo.AppSubnet2}",
+                                      "${AwsInfo.AppSubnet3}",
+                                      "${AwsInfo.AppSubnet4}"
+                                  ],
+                                  "AssignPublicIp": "DISABLED"
+                              }
+                          }
+                      },
+                      "End": true
+                  }
+              }
+          },
+          "Next": "Inference QC",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Inference QC": {
+          "Type": "Map",
+          "ItemsPath": "$.loc_batches",
+          "ResultPath": null,
+          "Parameters": {
+              "input.$": "$$.Map.Item.Value"
+          },
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ],
+          "Iterator": {
+              "StartAt": "INFERENCEQC",
+              "States": {
+                  "INFERENCEQC": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-inference-data-qc",
+                      "End": true
+                  }
+              }
+          },
+          "Next": "Inference QC Alerts"
+      },
+      "Inference QC Alerts": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-inference-data-alerts",
+          "Next": "Model data Aggregate",
+          "ResultPath": null,
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Model data Aggregate": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:<region>:<account_id>:function:<env>-opled-model-data-aggregate",
+          "ResultPath": null,
+          "Next": "Opled Benchmark",
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "Opled Benchmark": {
+          "Type": "Task",
+          "Resource": "arn:aws:states:::ecs:runTask.sync",
+          "ResultPath": null,
+          "Parameters": {
+              "LaunchType": "FARGATE",
+              "Cluster": "arn:aws:ecs:<region>:<account_id>:cluster/<env>-fargate-cluster",
+              "TaskDefinition": "arn:aws:ecs:<region>:<account_id>:task-definition/<env>-opled-qrf-v1-snaive-task",
+              "Overrides": {
+                  "ContainerOverrides": [
+                      {
+                          "Name": "<env>-opled-qrf-v1-snaive-task",
+                          "Environment": [
+                              {
+                                  "Name": "ENV",
+                                  "Value": "<env>"
+                              }
+                          ]
+                      }
+                  ]
+              },
+              "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                      "SecurityGroups": [
+                          "${AwsInfo.AppSecurityGroup}"
+                      ],
+                      "Subnets": [
+                          "${AwsInfo.AppSubnet1}",
+                          "${AwsInfo.AppSubnet2}",
+                          "${AwsInfo.AppSubnet3}",
+                          "${AwsInfo.AppSubnet4}"
+                      ],
+                      "AssignPublicIp": "DISABLED"
+                  }
+              }
+          },
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ],
+          "Next": "Opled Accuracy"
+      },
+      "Opled Accuracy": {
+          "Type": "Task",
+          "Resource": "arn:aws:states:::ecs:runTask.sync",
+          "ResultPath": null,
+          "Parameters": {
+              "LaunchType": "FARGATE",
+              "Cluster": "arn:aws:ecs:<region>:<account_id>:cluster/<env>-fargate-cluster",
+              "TaskDefinition": "arn:aws:ecs:<region>:<account_id>:task-definition/<env>-opled-accuracy-docker-v1-task",
+              "Overrides": {
+                  "ContainerOverrides": [
+                      {
+                          "Name": "<env>-opled-accuracy-docker-v1-task",
+                          "Environment": [
+                              {
+                                  "Name": "ENV",
+                                  "Value": "<env>"
+                              }
+                          ]
+                      }
+                  ]
+              },
+              "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                      "SecurityGroups": [
+                          "${AwsInfo.AppSecurityGroup}"
+                      ],
+                      "Subnets": [
+                          "${AwsInfo.AppSubnet1}",
+                          "${AwsInfo.AppSubnet2}",
+                          "${AwsInfo.AppSubnet3}",
+                          "${AwsInfo.AppSubnet4}"
+                      ],
+                      "AssignPublicIp": "DISABLED"
+                  }
+              }
+          },
+          "End": true,
+          "Retry": [{
+              "ErrorEquals":[ "States.ALL" ],
+              "IntervalSeconds": 3,
+              "MaxAttempts": 2,
+              "BackoffRate": 1.5
+          }],
+          "Catch": [
+              {
+                  "ErrorEquals": [
+                      "States.ALL"
+                  ],
+                  "ResultPath": null,
+                  "Next": "LogFailuretoSNS"
+              }
+          ]
+      },
+      "LogFailuretoSNS": {
+          "Type": "Task",
+          "Resource": "arn:aws:states:::sns:publish",
+          "Next": "Failure",
+          "Parameters": {
+              "TopicArn": "arn:aws:sns:<region>:<account_id>:<env>-slack-alerts-topic",
+              "Message": {
+                  "channel": "opled-alerts",
+                  "username": "<env>-opled-14day-forecast-state-machine",
+                  "icon_emoji": "rotating_light",
+                  "blocks": [
+                      {
+                          "type": "section",
+                          "text": {
+                              "type": "mrkdwn",
+                              "text": "The opled-14day-forecast-state-machine failed in the following environment"
+                          }
+                      }
+                  ]
+              }
+          }
+      },
+      "Failure": {
+          "Type": "Fail"
+      }
+  }
+}

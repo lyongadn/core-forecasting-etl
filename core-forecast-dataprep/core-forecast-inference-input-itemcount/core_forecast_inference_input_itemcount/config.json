@@ -1,0 +1,27 @@
+{
+    "dev": {
+        "actual_days": 56,
+        "database": "ml_preprod",
+        "features": 56,
+        "inference_iteminput_table_schema": "aroundthanksgiving,aroundchristmas,onedaypriorchristmas_and_new_year,federalholiday,holiday,blackfridaycheck,business_date,dayofweek,sunday,location_num,product,sum_daily_quantity,federalholiday_name,dataprep_generation_date",
+        "inferenceinput_itemkey": "data_lake/Inference/ItemCount/location_num=--/Inference_daily.csv",
+        "inferenceinput_itemlocalpath": "/tmp/inference_input.csv",
+        "numberdays_topredict": 32,
+        "prod_bucket": "test-q-forecasting-artifacts",
+        "replica_host_link": "integration-rds-forecast-cluster.cluster-ro-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-integration"
+    },
+    "test": {
+        "actual_days": 56,
+        "database": "ml_preprod",
+        "features": 56,
+        "inference_iteminput_table_schema": "aroundthanksgiving,aroundchristmas,onedaypriorchristmas_and_new_year,federalholiday,holiday,blackfridaycheck,business_date,dayofweek,sunday,location_num,product,sum_daily_quantity,federalholiday_name,dataprep_generation_date",
+        "inferenceinput_itemkey": "data_lake/Inference/ItemCount/location_num=--/Inference_daily.csv",
+        "inferenceinput_itemlocalpath": "/tmp/inference_input.csv",
+        "numberdays_topredict": 32,
+        "prod_bucket": "test-q-forecasting-artifacts",
+        "replica_host_link": "integration-rds-forecast-cluster.cluster-ro-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "secret_key": "cfa-rdskey-integration"
+    },
+    "prod": {}
+}

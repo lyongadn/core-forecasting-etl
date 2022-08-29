@@ -1,0 +1,45 @@
+{
+    "dev": {
+        "dollarsales": {
+            "docker_image": "725706091682.dkr.ecr.us-east-1.amazonaws.com/prod-lstm-inference:latest",
+            "endpoint_config_name": "lstm-inference-for-dollars-config",
+            "endpoint_name": "lstm-inference-for-dollars-endpoint",
+            "iam_role": "arn:aws:iam::725706091682:role/prod-cfaforecastprod-ec2-role",
+            "instance_type": "ml.t2.medium",
+            "model_name": "lstm-inference-for-dollars",
+            "security_group": "sg-60c2851e",
+            "subnet": [
+                "subnet-eec205b4",
+                "subnet-3276cc7a"
+            ]
+        },
+        "transcount": {
+            "docker_image": "725706091682.dkr.ecr.us-east-1.amazonaws.com/prod-lstm-inference:latest",
+            "endpoint_config_name": "lstm-inference-for-transcount-config",
+            "endpoint_name": "lstm-inference-for-transcount-endpoint",
+            "iam_role": "arn:aws:iam::725706091682:role/prod-cfaforecastprod-ec2-role",
+            "instance_type": "ml.c5.9xlarge",
+            "model_name": "lstm-inference-for-transcount",
+            "security_group": "sg-60c2851e",
+            "subnet": [
+                "subnet-eec205b4",
+                "subnet-3276cc7a"
+            ]
+        },
+        "itemcount": {
+            "docker_image": "725706091682.dkr.ecr.us-east-1.amazonaws.com/prod-lstm-inference:latest",
+            "endpoint_config_name": "lstm-inference-for-itemcount-config",
+            "endpoint_name": "lstm-inference-for-itemcount-endpoint",
+            "iam_role": "arn:aws:iam::725706091682:role/prod-cfaforecastprod-ec2-role",
+            "instance_type": "ml.c5.large",
+            "model_name": "lstm-inference-for-itemcount",
+            "security_group": "sg-60c2851e",
+            "subnet": [
+                "subnet-eec205b4",
+                "subnet-3276cc7a"
+            ]
+        }
+    },
+    "test": {},
+    "prod": {}
+}

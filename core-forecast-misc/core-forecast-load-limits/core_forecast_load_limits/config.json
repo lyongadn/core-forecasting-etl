@@ -1,0 +1,40 @@
+{
+    "dev": {
+        "custom_host_link":"integration-rds-forecast-cluster.cluster-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-integration",
+        "metric_list":["Dollarsales","Transcount","Itemcount","Ingredient"],
+        "table_name":["dollarsales_monthly_weekday_stats","transcount_monthly_weekday_stats","itemcount_160001_monthly_weekday_stats","ingredient_1_monthly_weekday_stats"],
+        "output_bucket":"dev-q-forecasting-artifacts",
+        "upload_path":"forecast/limits_perstore/__metric__/",
+        "database":"ui_preprod"
+    },
+
+    "test": {
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-integration",
+        "delete_query":"core_forecast_load_limits/delete_limits.sql",
+        "load_query":"core_forecast_load_limits/load_limits.sql",
+        "Dollarsales":"dollarsales_monthly_weekday_stats",
+        "Transcount":"transcount_monthly_weekday_stats",
+        "Itemcount":"itemcount_160001_monthly_weekday_stats",
+        "Ingredient":"ingredient_1_monthly_weekday_stats",
+        "output_bucket":"test-q-forecasting-artifacts",
+        "upload_path":"forecast/limits_perstore_old/__metric__",
+        "database":"ui_preprod"
+    },
+
+    "prod":{
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-prod",
+        "delete_query":"core_forecast_load_limits/delete_limits.sql",
+        "load_query":"core_forecast_load_limits/load_limits.sql",
+        "Dollarsales":"dollarsales_monthly_weekday_stats",
+        "Transcount":"transcount_monthly_weekday_stats",
+        "Itemcount":"itemcount_160001_monthly_weekday_stats",
+        "Ingredient":"ingredient_1_monthly_weekday_stats",
+        "output_bucket":"prod-q-forecasting-artifacts",
+        "upload_path":"forecast/limits_perstore/__metric__",
+        "database":"ui_preprod"
+    }
+}

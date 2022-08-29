@@ -1,0 +1,35 @@
+{
+    "dev": {
+        "custom_host_link":"integration-rds-forecast-cluster.cluster-cl1ixfzubfxb.us-east-1.rds.amazonaws.com",
+        "region_name":"us-east",
+        "secret_key":"cfa-rdskey-integration",
+        "local_path":"/tmp/demand-__business_date__.csv",
+        "output_bucket":"dev-q-forecasting-artifacts",
+        "upload_path":"forecast/CSVtoJSON/Json-qc-table/location_num=__location_num__/demand-__business_date__.csv",
+        "database":"ui_preprod",
+        "table_name":"json_forecast_type_generation_date",
+        "dynamodb_table":"dev-forecast-json-info"
+    },
+
+    "test": {
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-integration",
+        "local_path":"/tmp/demand-__business_date__.csv",
+        "output_bucket":"test-q-forecasting-artifacts",
+        "upload_path":"forecast/CSVtoJSON/Json-qc-table/location_num=__location_num__/demand-__business_date__.csv",
+        "database":"ui_preprod",
+        "table_name":"json_forecast_type_generation_date",
+        "dynamodb_table":"test-forecast-json-info"
+    },
+
+    "prod":{
+        "region_name":"us-east-1",
+        "secret_key":"cfa-rdskey-prod",
+        "local_path":"/tmp/demand-__business_date__.csv",
+        "output_bucket":"prod-q-forecasting-artifacts",
+        "upload_path":"forecast/CSVtoJSON/Json-qc-table/location_num=__location_num__/demand-__business_date__.csv",
+        "database":"ui_preprod",
+        "table_name":"json_forecast_type_generation_date",
+        "dynamodb_table":"prod-forecast-json-info"
+    }
+}

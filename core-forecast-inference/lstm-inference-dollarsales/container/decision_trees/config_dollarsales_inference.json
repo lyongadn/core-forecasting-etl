@@ -1,0 +1,30 @@
+{
+    "shorter_forecast_start": 11,
+    "shorter_forecast_end": 12,
+    "longer_forecast_start": 13,
+    "longer_forecast_end": 14,
+    "redundancy_forecast_start": 26,
+    "redundancy_forecast_end": 30,
+    "bucket": "prod-q-forecasting-artifacts",
+    "shorter_local_name": "fourteen",
+    "shorter_filename": "fourteendayAhead",
+    "shorter_folder_name": "14thday",
+    "longer_folder_name": "30thday",
+    "redundancy_folder_name": "redundancy",
+    "longer_local_name": "thirty",
+    "longer_filename": "thirtydayAhead",
+    "redundancy_local_name": "thirtyfour",
+    "redundancy_filename": "thirtyfourdayAhead",
+    "lookback": 15,  
+    "horizon": 10,
+    "_comment": "The lookback and horizon values should be same during training and testing",
+    "metric": "sales_sub_total",
+    "base_s3_path": "forecast/dollarsales/daily/",
+    "data_key": "data_lake/Inference/DollarsAndTranscount/",
+    "forecast_day_out_key": "code-files/lstm-training/forecast_store_dayout.csv"
+        
+}
+
+
+
+

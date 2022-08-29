@@ -1,0 +1,79 @@
+name: Pull Request
+on:
+  pull_request:
+    branches:
+      # - develop
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.base_ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v2
+      - name: load cfacorp actions
+        uses: actions/checkout@v2
+        with:
+          repository: cfacorp/github-actions
+          ref: master
+          token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+          path: .github/private-actions
+      - name: load env vars
+        uses: ./.github/private-actions/env-loader
+        with:
+          env-file: ./manifest.yaml
+          filter: base,${{ env.ENVIRONMENT }}
+      - name: setup cache
+        uses: actions/cache@v2
+        with:
+          path:
+            | # Paths to cache (private-actions, pip-cache, maven-cache, coverage and unit test reports, and other things like that)
+            ${{ env.CACHE_PATHS }}
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+      - name: artifactory-version-check
+        uses: ./.github/private-actions/artifactory-version-check
+        with:
+          artifact-name: ${{ env.NAME }}
+          artifact-version: ${{ env.VERSION }}
+          artifactory-user: ${{ secrets.ARTIFACTORY_USER }}
+          artifactory-pass: ${{ secrets.ARTIFACTORY_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Unit Test
+        uses: chick-fil-a/gha-docker-run@v1
+        with:
+          image: lambci/lambda:build-python3.8
+          run: |
+            mkdir -p reports; 
+            pip install poetry pytest pytest-cov pytest-socket;
+            poetry export -f requirements.txt  -o requirements.txt --without-hashes  
+            pip install -r requirements.txt;
+            coverage run --source=${{ env.SRC_DIR }} -m pytest --cov-report term-missing --cov ${{ env.SRC_DIR }} -rA test;
+            coverage run --source=${{ env.SRC_DIR }} -m pytest --junitxml=${{ env.SONAR_XUNIT_REPORT }} -rA --tb=line test;
+            coverage xml -o ${{ env.SONAR_COVERAGE_REPORT }} -i;
+            coverage report;
+      # Scan with Sonar
+      - name: Setup sonar-scanner
+        uses: ./.github/private-actions/sonar-scanner
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          args: |
+            -X -Dsonar.host.url=${{ env.SONAR_SERVER_URL }} \
+            -Dsonar.projectKey=${{ env.NAME }} \
+            -Dsonar.sources=${{ env.SRC_DIR }} \
+            -Dsonar.projectName=${{ env.NAME }} \
+            -Dsonar.projectVersion=${{ env.VERSION }} \
+            -Dsonar.qualitygate.wait=${{ env.SONAR_QUALITY_GATE_WAIT }} \
+            `#FOR PULL REQUEST ANALYSIS` \
+            -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} \
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+            -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} \
+            `#FOR CODE COVERAGE` \
+            -Dsonar.python.coverage.reportPaths=${{ env.SONAR_COVERAGE_REPORT }} \
+            `#FOR UNIT TESTS` \
+            -Dsonar.tests=./test/ \
+            -Dsonar.python.xunit.reportPath=${{ env.SONAR_XUNIT_REPORT }}

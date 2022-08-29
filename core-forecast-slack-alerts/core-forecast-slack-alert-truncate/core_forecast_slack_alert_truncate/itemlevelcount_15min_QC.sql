@@ -1,0 +1,1 @@
+select coalesce(length(location_num),0) from data_forecast_qc.final_itemlevelcount_15min_QC limit 1;

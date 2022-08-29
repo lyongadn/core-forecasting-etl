@@ -1,0 +1,159 @@
+name: Deploy to Dev
+on:
+  push:
+    branches:
+    - develop
+
+env:
+  ENVIRONMENT: dev
+  REGION: "us-east-1"
+  DOCKER_REGISTRY: "cfa-docker.jfrog.io"
+  REPOSITORY: https://github.com/cfacorp/core-forecasting-etl.git
+  DEV_AWS_ACCOUNT: "cfascforecastnp"
+  PROD_AWS_ACCOUNT: "cfascforecastprod"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: develop
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+        submodules: recursive
+    - run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
+    - name: docker build (develop)
+      if: github.ref == 'refs/heads/develop'
+      uses: ./.github/private-actions/gha-docker-build
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image: ${{ env.DOCKER_REGISTRY }}/${{ env.NAME }}
+        tags: ${{ env.VERSION }}-develop.${{ github.run_number }},${{ env.VERSION }}-develop,develop
+        build-params: --build-arg HELP=ME
+    - name: docker build (master)
+      if: github.ref == 'refs/heads/master'
+      uses: ./.github/private-actions/gha-docker-build
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image: ${{ env.DOCKER_REGISTRY }}/${{ env.NAME }}
+        tags: ${{ env.VERSION }}-${{ github.run_number }},${{ env.VERSION }},release
+        build-params: --build-arg HELP=ME
+    - name: docker build (custom)
+      if: ${{ github.event.inputs.TAG }}
+      uses: ./.github/private--actions/gha-docker-build
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        image: ${{ env.DOCKER_REGISTRY }}/${{ env.NAME }}
+        tags: ${{ env.VERSION }}-${{ github.event.inputs.TAG }}.${{ github.run_number }},${{ env.VERSION }}-${{ github.event.inputs.TAG }},${{ github.event.inputs.TAG }}
+    - name: docker push
+      run: |
+        docker login -u ${{ secrets.ARTIFACTORY_USER }} -p ${{ secrets.ARTIFACTORY_TOKEN }} $DOCKER_REGISTRY
+        docker push $DOCKER_REGISTRY/$NAME
+    - name: Push tag (develop)
+      if: github.ref == 'refs/heads/develop'
+      uses: ./.github/private-actions/git-tag
+      with:
+        tag: ${{ env.VERSION }}-develop.${{ github.run_number }}
+    - name: Push tag (master)
+      if: github.ref == 'refs/heads/master'
+      uses: ./.github/private-actions/git-tag
+      with:
+        tag: ${{ env.VERSION }}-${{ github.run_number }}
+    - name: Push tag (custom)
+      if: ${{ github.event.inputs.TAG }}
+      uses: ./.github/private-actions/git-tag
+      with:
+        tag: ${{ env.VERSION }}-${{ github.event.inputs.TAG }}.${{ github.run_number }}
+    - name: Set runner to nonprod
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        echo RUNNER=$DEV_AWS_ACCOUNT >> $GITHUB_ENV
+    - name: Set runner to production
+      if: github.ref == 'refs/heads/master'
+      run: |
+        echo RUNNER=$PROD_AWS_ACCOUNT >> $GITHUB_ENV
+    - name: Cleanup
+      if: always()
+      run: rm -rf /home/runner/.docker/config.json
+    outputs:
+      runner: ${{ env.RUNNER }}
+
+  #The deployment runs in the account so it has access to ECR
+  deploy_to_ecr:
+    needs: [build]
+    runs-on: ${{ needs.build.outputs.runner }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: develop
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+
+    - name: get-caller-identity
+      run: aws sts get-caller-identity
+
+    - name: Artifactory Login and Pull Image (develop)
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        echo "Logging into Artifactory"
+        docker login -u ${{ secrets.ARTIFACTORY_USER }} -p ${{ secrets.ARTIFACTORY_TOKEN }} $DOCKER_REGISTRY
+        
+        echo "Pull from Artifactory"
+        docker pull $DOCKER_REGISTRY/$NAME:develop
+    - name: Artifactory Login and Pull Image (master)
+      if: github.ref == 'refs/heads/master'
+      run: |
+        echo "Logging into Artifactory"
+        docker login -u ${{ secrets.ARTIFACTORY_USER }} -p ${{ secrets.ARTIFACTORY_TOKEN }} $DOCKER_REGISTRY
+        
+        echo "Pull from Artifactory"
+        docker pull $DOCKER_REGISTRY/$NAME:release
+    - name: Login to ECR
+      run: |
+        echo "Now Tag and Push to ECR, Create if Necessary"
+        export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com
+    - name: Check if ECR Repo Exists
+      id: check-exists
+      continue-on-error: true
+      run: |
+        echo "Check if ECR Repo exists"
+        aws ecr describe-repositories --repository-names "${NAME}" > /dev/null 2>&1
+    - name: Create Repo if Doesn't Exist
+      if: steps.check-exists.outcome != 'success' || steps.check-exists.conclusion != 'success'
+      run: |
+        echo "Creating Repository"
+        aws ecr create-repository --repository-name ${NAME} > /dev/null
+    - name: Tag and Push to ECR (develop)
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        echo "Tagging Docker"
+        docker tag $DOCKER_REGISTRY/$NAME:develop ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${NAME}:latest
+        
+        echo "Pushing Docker"
+        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${NAME}:latest
+    - name: Tag and Push to ECR (master)
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        echo "Tagging Docker"
+        docker tag $DOCKER_REGISTRY/$NAME:release ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${NAME}:latest
+        
+        echo "Pushing Docker"
+        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${NAME}:latest
+        
+    - name: Cleanup
+      if: always()
+      run: rm -rf /home/runner/.docker/config.json
+    outputs:
+      env: ${{ toJson(env) }}

@@ -1,0 +1,116 @@
+
+name: dev-qc-baseline-forecast
+on:
+  push:
+    paths:
+    - 'core-forecast-qc/core-forecast-qc-baseline/**'
+    - '.github/workflows/dev-qc-baseline-forecast.yaml'
+    branches:
+    - develop
+
+env:
+  ENVIRONMENT: dev
+  
+jobs:
+  # Load env vars and other preliminary stuff
+  init:
+    name: Init
+    runs-on: ubuntu-latest
+    steps:
+    # Checout repo
+    - uses: actions/checkout@v2
+    # Checkout private cfacorp actions lib
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    # Load env vars 
+    - name: env-loader
+      uses: ./.github/private-actions/env-loader
+      with:
+        env-file: ./core-forecast-qc/core-forecast-qc-baseline/manifest.yaml
+        filter: base,${{ env.ENVIRONMENT }}
+    - run: echo GITHUB_REF_SLUG=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+    # Set NP VERSION with suffix
+    - name: set version (snapshot)
+      if: github.ref != 'refs/heads/master'
+      run: |
+        echo "VERSION=${{ env.VERSION }}-dev.${{ github.run_number }}" >> $GITHUB_ENV
+    outputs:
+      env: ${{ toJson(env) }}
+      account: ${{ env.ACCOUNT }}
+  # Build Artifact and Push to Artifactory
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init]
+    steps:
+    # Checout repo
+    - uses: actions/checkout@v2
+    - name: load cfacorp actions
+      uses: actions/checkout@v2
+      with:
+        repository: cfacorp/github-actions
+        ref: master
+        token: ${{ secrets.READONLY_GITHUB_TOKEN }}
+        path: .github/private-actions
+    # Build
+    - name: Build
+      uses: chick-fil-a/gha-docker-run@v1
+      with: 
+        image: lambci/lambda:build-python3.8
+        run: |
+          pip install -t ./dist/src -r ./${{ env.SRC_DIR_PREFIX }}/${{ env.SRC_DIR }}/requirements.txt
+          cp -r ./${{ env.SRC_DIR_PREFIX }}/${{ env.SRC_DIR }} ./dist/src/
+    # Package
+    - name: Package
+      run: |
+        cd ./dist/src
+        zip -r ../${{ env.SRC_DIR }}-${{ env.VERSION }}.zip ./*
+    - name: Publish Artifact
+      run: |
+        curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T dist/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip
+        curl --silent --show-error --fail -v -u ${{ secrets.ARTIFACTORY_CREDS }} -T ${{ env.SRC_DIR_PREFIX }}/aws/cloudformation.yaml ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+    - name: Push tag
+      uses: ./.github/private-actions/git-tag
+      with:
+        tag: v${{ env.VERSION }}
+# Deploy to AWS Account
+  deploy:
+    name: Deploy
+    env: ${{ fromJson(needs.init.outputs.env) }} # Setting env to env output from previous job
+    needs: [init,build]
+    runs-on: ${{ needs.init.outputs.account }} # Specifying which runner to run on
+    steps:
+    - uses: chick-fil-a/gha-clear-workspace@v1
+    - name: Set env vars
+      run: |
+        echo "BUCKET=$(aws sts get-caller-identity --query Account --output text)-us-east-1-deploy" >> $GITHUB_ENV
+        echo "LAMBDA_ARTIFACT=${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip" >> $GITHUB_ENV
+    - name: Download Artifacts
+      run: |
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/${{ env.SRC_DIR }}-${{ env.VERSION }}.zip
+        curl --silent --show-error --fail -LO -v -u ${{ secrets.ARTIFACTORY_CREDS }} ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPO }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+    - name: Upload Lambda Code
+      run: |
+        aws s3api create-bucket --bucket ${{ env.BUCKET }}  # Creates bucket if it doesn't exist
+        aws s3 cp ${{ env.SRC_DIR }}-${{ env.VERSION }}.zip s3://${{ env.BUCKET }}/${{ env.LAMBDA_ARTIFACT }}
+        aws s3 cp cloudformation.yaml s3://${{ env.BUCKET }}/${{ env.NAME }}/${{ env.VERSION }}/cloudformation.yaml
+    - name: Deploy Cloudformation
+      uses: chikin-4x/aws-cloudformation-github-deploy@master
+      with:
+        name: ${{ env.ENVIRONMENT}}-${{ env.NAME }}
+        template: cloudformation.yaml
+        capabilities: CAPABILITY_NAMED_IAM
+        parameter-overrides: >
+          Name=${{ env.NAME }},
+          Environment=${{ env.ENVIRONMENT }},
+          Bucket=${{ env.BUCKET }},
+          LambdaArtifact=${{ env.LAMBDA_ARTIFACT }}          
+        tags: |
+          SystemTag: ${{ env.SYSTEM_TAG }}
+          Environment: ${{ env.ENVIRONMENT }}

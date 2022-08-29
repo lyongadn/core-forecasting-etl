@@ -1,0 +1,32 @@
+base:
+  name: core-forecast-load-limits
+  version: "load-limits-0.0.3"
+  system_tag: CORE_FORECAST_LOAD_LIMITS
+  src_dir: core_forecast_load_limits 
+  src_dir_prefix: core-forecast-misc/core-forecast-load-limits
+  artifactory_url: https://cfa.jfrog.io/cfa
+  sonar:
+    server_url: https://sonar.ittools.cfahome.com
+    coverage_report: reports/coverage-report.xml
+    xunit_report: reports/xunit-report.xml
+    quality_gate_wait: false
+  servicenow:
+    create_change: False
+    user_group: 
+  cache_paths: |
+    ~/.cache/pip
+
+dev:
+  environment: dev
+  artifactory_repo: generic-snapshot
+  account: cfascforecastnp
+
+test:
+  environment: test
+  artifactory_repo: generic-release
+  account: cfascforecastnp
+
+prod:
+  environment: prod
+  artifactory_repo: generic-release
+  account: cfascforecastprod
