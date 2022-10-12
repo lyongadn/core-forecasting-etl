@@ -3,7 +3,7 @@ on:
   push:
     paths:
     - 'core-forecast-inference-daily/core-forecast-inference-naive-daily-itemcount/**'
-    - '.github/workflows/dev-forecast-inference-naive-daily-itemcount.yaml'
+    - '.github/workflows/dev-inference-naive-daily-itemcount.yaml'
     branches:
     - develop
 
